@@ -118,6 +118,7 @@ def validate_context_bundle_files(ws: Path, errors: list[str]) -> None:
 
 def validate_design_claims_have_context(ws: Path, errors: list[str]) -> None:
     bundle_md = ws / "context" / "context_bundle.md"
+    sources_yaml = ws / "context" / "context_sources.yaml"
     combined = ""
     for rel in ["docs/draft.md", "docs/plan.md", "docs/architecture.md"]:
         path = ws / rel
@@ -125,8 +126,29 @@ def validate_design_claims_have_context(ws: Path, errors: list[str]) -> None:
             combined += "\n" + path.read_text(encoding="utf-8")
     lower = combined.lower()
     risky_terms = ["throughput", "latency", "performance", "production"]
-    if any(term in lower for term in risky_terms) and not bundle_md.exists():
+    if not any(term in lower for term in risky_terms):
+        return
+    if not bundle_md.exists():
         errors.append("performance/production claim lacks complete context bundle")
+        return
+    try:
+        bundle = load_bundle(bundle_md)
+    except SystemExit as exc:
+        errors.append(f"performance/production claim lacks parseable context bundle: {exc}")
+        return
+    bundle_errors = validate_bundle(bundle)
+    if bundle_errors:
+        errors.append("performance/production claim lacks valid context bundle: " + "; ".join(bundle_errors))
+    validation_pages = bundle.get("packs", {}).get("validation_risk_pack", [])
+    if not validation_pages:
+        errors.append("performance/production claim lacks validation/risk context pack")
+    for page in validation_pages:
+        if not page.get("source_ids"):
+            errors.append(f"performance/production claim validation/risk page lacks source_ids: {page.get('page_id')}")
+    if sources_yaml.exists():
+        sources = yaml.safe_load(sources_yaml.read_text(encoding="utf-8")) or {}
+        if not sources.get("validation_risk_pages") or not isinstance(sources.get("sources"), dict):
+            errors.append("performance/production claim lacks context_sources validation/risk source map")
 
 
 def main() -> int:

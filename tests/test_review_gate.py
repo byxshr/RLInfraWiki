@@ -183,3 +183,20 @@ def test_review_gate_matches_validation_matrix_commands_exactly(tmp_path):
     result = run_gate(ws)
     assert result.returncode == 1
     assert "validation_matrix.md missing validation command from task_contract.yaml: pytest" in result.stdout
+
+
+def test_review_gate_requires_parseable_context_for_production_claim(tmp_path):
+    ws = render_locked_workspace(tmp_path)
+    (ws / "docs" / "architecture.md").write_text(
+        "# Architecture\n\n"
+        "This production path has a latency-sensitive performance claim.\n"
+    )
+    (ws / "context" / "context_bundle.md").write_text("# Broken Context\n\nNo embedded bundle metadata.\n")
+    subprocess.run([
+        sys.executable, str(ROOT / "scripts/lock_plan.py"),
+        "--workspace", str(ws),
+    ], cwd=ROOT, text=True, capture_output=True, check=True)
+
+    result = run_gate(ws)
+    assert result.returncode == 1
+    assert "performance/production claim lacks parseable context bundle" in result.stdout
