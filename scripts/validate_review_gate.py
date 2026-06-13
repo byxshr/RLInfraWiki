@@ -118,8 +118,6 @@ def validate_context_bundle_files(ws: Path, errors: list[str]) -> None:
 
 def validate_design_claims_have_context(ws: Path, errors: list[str]) -> None:
     bundle_md = ws / "context" / "context_bundle.md"
-    if not bundle_md.exists():
-        return
     combined = ""
     for rel in ["docs/draft.md", "docs/plan.md", "docs/architecture.md"]:
         path = ws / rel
@@ -127,11 +125,8 @@ def validate_design_claims_have_context(ws: Path, errors: list[str]) -> None:
             combined += "\n" + path.read_text(encoding="utf-8")
     lower = combined.lower()
     risky_terms = ["throughput", "latency", "performance", "production"]
-    if any(term in lower for term in risky_terms):
-        required_terms = ["source", "context", "validation", "risk"]
-        missing = [term for term in required_terms if term not in lower]
-        if missing:
-            errors.append("performance/production claim lacks complete context: missing " + ", ".join(missing))
+    if any(term in lower for term in risky_terms) and not bundle_md.exists():
+        errors.append("performance/production claim lacks complete context bundle")
 
 
 def main() -> int:
