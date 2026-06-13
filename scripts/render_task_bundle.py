@@ -156,6 +156,11 @@ def task_family(contract: dict) -> str:
         str(contract.get("objective", "")),
         " ".join(str(item) for item in contract.get("components", []) or []),
     ]).lower()
+    mentions_rollout_backend = "rollout-backend-selection" in text or "rollout backend" in text or ("rollout" in text and "backend" in text)
+    mentions_backend_pair = "sglang" in text and "vllm" in text
+    selection_terms = ["select", "selection", "choose", "compare", "matrix", "tradeoff", "trade-off"]
+    if (mentions_rollout_backend or mentions_backend_pair) and any(term in text for term in selection_terms):
+        return "rollout-backend-selection"
     if any(term in text for term in ["grpo", "rlvr", "algorithm-data-contract", "algorithm data contract"]):
         return "algorithm-data-contract"
     if "weight-sync" in text or "weight synchronization" in text:
@@ -204,6 +209,34 @@ def render_draft(contract: dict, bundle: dict) -> str:
             "- Reward/verifier timeout or partial reward rows.",
             "- Grouped GRPO samples with incomplete or mixed-policy groups.",
             "- Stale policy samples accepted beyond the configured lag bound.",
+        ])
+    elif family == "rollout-backend-selection":
+        sections.extend([
+            "### Candidate A: SGLang primary with vLLM fallback",
+            "",
+            "Use SGLang as the primary rollout backend when the target framework values explicit RL lifecycle controls: sleep/wake, pause/continue generation, refit choices, `flush_cache`, `weight_version`, logprob request fields, and PD/router surfaces. Keep vLLM as a full fallback when its documented RL weight-transfer backend, pause/resume and cache control, batch-invariance, and disaggregated prefill surfaces are a better fit for the target deployment. Required pages include `capability-rollout-backend-selection`, `backend-sglang`, `backend-vllm`, and `comparisons-rollout-backends`.",
+            "",
+            "### Candidate B: vLLM primary with SGLang fallback",
+            "",
+            "Use vLLM as the primary rollout backend when colocated IPC transfer, NCCL/disaggregated transfer, or vLLM-native inference operations are the strongest target match. Keep SGLang as the fallback when rollout lifecycle controls, deterministic inference hooks, cache flushing, and PD/router controls reduce integration risk. Required source IDs include `source-vllm-rollout-backend-refs` and `source-sglang-rollout-backend-refs`.",
+            "",
+            "## Source-backed evidence to carry forward",
+            "",
+            "| topic | page IDs | source IDs | review note |",
+            "|---|---|---|---|",
+            "| selection capability | `capability-rollout-backend-selection`, `comparisons-rollout-backends` | `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs` | Compare lifecycle, weight update, cache, logprob, topology, and operational complexity. |",
+            "| backend profiles | `backend-sglang`, `backend-vllm` | `source-sglang-rollout-backend-refs`, `source-vllm-rollout-backend-refs` | Treat upstream docs/code refs as source-reported until locally reproduced. |",
+            "| topology | `pattern-colocated-train-rollout`, `pattern-disaggregated-train-rollout`, `pattern-pd-disaggregation` | `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs` | Pick topology before claiming a backend is simpler. |",
+            "| correctness risks | `failure-stale-kv-cache`, `failure-inconsistent-logprob`, `validation-logprob-consistency` | `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs` | Cache and logprob validation are promotion blockers. |",
+            "",
+            "## Failure modes to carry forward",
+            "",
+            "- Stale KV/prefix cache after weight update or policy switch.",
+            "- Inconsistent rollout `old_logprob` versus trainer recomputation.",
+            "- Missing or non-monotonic `weight_version` / policy version on requests, samples, logs, and evidence.",
+            "- Partial weight update across rollout workers or disaggregated ranks.",
+            "- Target-only design that ignores cross-framework lessons and validation pages.",
+            "- Unverified throughput, latency, production, GPU, NCCL, or multi-node claim.",
         ])
     elif family == "weight-sync":
         sections.extend([
@@ -273,6 +306,39 @@ def render_plan(contract: dict, bundle: dict) -> str:
             "- reward/verifier hooks and timeout behavior.",
             "- policy/version metadata propagation from trainer to rollout and back.",
         ])
+    elif family == "rollout-backend-selection":
+        sections.extend([
+            "Design a target-aware rollout backend selection for RLVR/GRPO. The first pass should choose a primary backend and a full fallback, then make the choice reviewable with source-backed evidence, explicit cache/logprob/version contracts, deployment topology, and validation gates. This plan is a design scaffold; it does not verify GPU/NCCL/multi-node execution, throughput, latency, or production readiness.",
+            "",
+            "## Rollout Backend Selection",
+            "",
+            "| decision field | required output | evidence to cite |",
+            "|---|---|---|",
+            "| `target_framework` | First target framework from the task contract, with source-inspection TODOs. | Target Framework Pack page IDs. |",
+            "| `primary_backend` | Choose `sglang` or `vllm`; record why this target prefers it. | `capability-rollout-backend-selection`, `backend-sglang`, `backend-vllm`, `comparisons-rollout-backends`. |",
+            "| `fallback_backend` | Choose the other backend as the full fallback or explain why fallback is blocked. | Backend profile pages and source IDs. |",
+            "| `primary_weight_update_path` | State disk, tensor, distributed, IPC/NCCL, or target-native path as source-reported design, not verified runtime fact. | `interface-weight-sync-adapter`, backend pages, `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs`. |",
+            "| `full_fallback` | Immutable full checkpoint reload or equivalent fail-closed path with the same version identity. | Weight-sync and backend source IDs. |",
+            "| `weight_version` / policy version | Attach to rollout requests, backend state, samples, trainer batches, logs, and evidence. | `capability-policy-versioning`, `validation-weight-version-monotonicity`. |",
+            "| cache policy | Require `flush_cache`, cache namespace by version, or documented proof that stale cache cannot cross versions. | `failure-stale-kv-cache`, `validation-logprob-consistency`. |",
+            "| logprob policy | Specify whether rollout returns `old_logprob`, trainer recomputes, or both; define mismatch threshold and replay evidence. | `capability-rollout-logprob-capture`, `failure-inconsistent-logprob`, `validation-logprob-consistency`. |",
+            "| topology | Choose colocated, disaggregated, or PD disaggregation before backend promotion. | `pattern-colocated-train-rollout`, `pattern-disaggregated-train-rollout`, `pattern-pd-disaggregation`. |",
+            "",
+            "## Selection Matrix",
+            "",
+            "| criterion | SGLang evidence | vLLM evidence | design decision |",
+            "|---|---|---|---|",
+            "| RL lifecycle controls | Cite `backend-sglang` and `source-sglang-rollout-backend-refs`. | Cite `backend-vllm` and `source-vllm-rollout-backend-refs`. | Fill after target repo inspection. |",
+            "| weight update and fallback | Cite SGLang refit, `flush_cache`, `weight_version` claims. | Cite vLLM RL weight-transfer, pause/resume, cache-control claims. | Fill with primary/fallback path. |",
+            "| cache and logprob correctness | Cite `failure-stale-kv-cache`, `failure-inconsistent-logprob`. | Cite same validation/risk pages. | Promotion blocked without validation evidence. |",
+            "| topology fit | Cite colocated/disaggregated/PD pattern pages. | Cite colocated/disaggregated/PD pattern pages. | Pick one topology first. |",
+            "",
+            "## Non-Claims",
+            "",
+            "- No local GPU, NCCL, multi-node, throughput, latency, or production readiness claim is made by this scaffold.",
+            "- Source-reported backend capabilities remain source-reported until reproduced with local commands, logs, and artifacts.",
+            "- A backend is not promoted unless the rendered plan cites page IDs, source IDs, validation/risk pages, and known gaps.",
+        ])
     elif family == "weight-sync":
         sections.extend([
             "Primary path: target-aware weight sync from Megatron training to SGLang rollout using explicit `weight_version`, pause/drain, transfer, verify, `flush_cache`, and resume boundaries.",
@@ -295,6 +361,8 @@ def render_plan(contract: dict, bundle: dict) -> str:
     ])
     if family == "algorithm-data-contract":
         sections.append("prompt source -> rollout request -> inference backend -> token/logprob output -> reward/verifier -> trajectory/sample schema -> data buffer -> grouped trainer batch -> loss computation -> metrics/traces")
+    elif family == "rollout-backend-selection":
+        sections.append("target framework requirements -> context bundle -> SGLang/vLLM evidence matrix -> topology choice -> primary backend -> fallback backend -> weight update path -> cache/logprob/version contract -> validation evidence -> review gate")
     else:
         sections.append("prompt source -> rollout request -> inference backend -> tool/env interaction -> reward/verifier -> trajectory object -> data buffer -> trainer batch -> gradient update -> weight sync -> rollout version update -> metrics/traces")
     sections.extend([
@@ -313,6 +381,20 @@ def render_plan(contract: dict, bundle: dict) -> str:
             "- reward/verifier output: records timeout/retry state and never silently defaults failed rewards.",
             "- failure modes: sample schema drift, inconsistent logprob, reward timeout, stale policy training, incomplete groups.",
             "- required Wiki/source IDs: `framework-slime`, `interface-algorithm-data-contract`, `capability-rollout-logprob-capture`, `capability-sample-grouping`, `capability-policy-versioning`, `failure-sample-schema-drift`, `validation-logprob-consistency`.",
+        ])
+    elif family == "rollout-backend-selection":
+        sections.extend([
+            "## Rollout Backend Contract Checks",
+            "",
+            "- `primary_backend`: chosen only after target framework pack, generic capability pages, cross-framework comparisons, and validation/risk pack are present.",
+            "- `fallback_backend`: documented with a full fallback route and rollback trigger.",
+            "- `primary_weight_update_path`: names the source-reported update mechanism and its fail-closed fallback.",
+            "- `full_fallback`: uses immutable checkpoint reload or an equivalent full-state restore with matching `weight_version`.",
+            "- `weight_version`: attached to rollout request, backend state, sample, trainer batch, logs, validation output, and artifact provenance.",
+            "- cache policy: requires `flush_cache`, cache namespacing, or source-backed proof that stale cache cannot cross policy versions.",
+            "- logprob policy: requires rollout `old_logprob` capture or recomputation, tolerance definition, and replay evidence.",
+            "- failure modes: stale KV cache, inconsistent logprob, partial weight update, distributed rank mismatch, target-only retrieval, and unverified performance/production claim.",
+            "- required Wiki/source IDs: `capability-rollout-backend-selection`, `comparisons-rollout-backends`, `backend-sglang`, `backend-vllm`, `pattern-colocated-train-rollout`, `pattern-disaggregated-train-rollout`, `pattern-pd-disaggregation`, `failure-stale-kv-cache`, `failure-inconsistent-logprob`, `validation-logprob-consistency`, `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs`.",
         ])
     elif family == "weight-sync":
         sections.extend([
@@ -376,7 +458,41 @@ def render_plan(contract: dict, bundle: dict) -> str:
 
 
 def render_architecture(contract: dict, bundle: dict) -> str:
-    if task_family(contract) != "algorithm-data-contract":
+    family = task_family(contract)
+    if family == "rollout-backend-selection":
+        return """# Architecture
+
+## Target
+
+Design a target-aware rollout backend selection for RLVR/GRPO. The architecture is source-traceable design output, not a verified runtime benchmark or production claim.
+
+## Flow
+
+target framework requirements -> RLInfraWiki context bundle -> SGLang/vLLM evidence matrix -> topology decision -> primary backend -> fallback backend -> weight update path -> cache/logprob/version contract -> validation evidence -> review gate.
+
+## Required boundaries
+
+- Target framework owns trainer/rollout integration points and must be inspected before implementation changes.
+- Rollout backend owns generation, backend provenance, cache lifecycle, and any source-reported logprob output.
+- Weight update adapter owns primary update path, full fallback, monotonic `weight_version`, `flush_cache` or cache namespacing, and fail-closed behavior.
+- Validation layer owns logprob replay checks, train/infer schema matching, stale-policy bounds, and artifact provenance.
+
+## Evidence map
+
+| area | page IDs | source IDs |
+|---|---|---|
+| backend selection | `capability-rollout-backend-selection`, `comparisons-rollout-backends` | `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs` |
+| backend profiles | `backend-sglang`, `backend-vllm` | `source-sglang-rollout-backend-refs`, `source-vllm-rollout-backend-refs` |
+| topology | `pattern-colocated-train-rollout`, `pattern-disaggregated-train-rollout`, `pattern-pd-disaggregation` | `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs` |
+| correctness risks | `failure-stale-kv-cache`, `failure-inconsistent-logprob`, `validation-logprob-consistency` | `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs` |
+
+## Open gaps
+
+- Source-reported framework behavior has not been locally reproduced with GPU/NCCL/multi-node execution.
+- Throughput, latency, and production readiness are not verified by this scaffold.
+- Target repository symbols should be inspected before implementation changes.
+"""
+    if family != "algorithm-data-contract":
         return "# Architecture\n\nPending RLCR iteration.\n"
     return """# Architecture
 
@@ -403,7 +519,33 @@ slime trainer config -> rollout request -> rollout backend token/logprob output 
 
 
 def render_interfaces(contract: dict) -> str:
-    if task_family(contract) != "algorithm-data-contract":
+    family = task_family(contract)
+    if family == "rollout-backend-selection":
+        return """# Interfaces
+
+## RolloutBackendSelection fields
+
+| field | owner | required | notes |
+|---|---|---:|---|
+| `target_framework` | task owner | yes | Anchor for target-aware design; do not let this become target-only. |
+| `primary_backend` | architect | yes | `sglang` or `vllm`, with page IDs and source IDs. |
+| `fallback_backend` | architect | yes | The non-primary backend or a documented blocked fallback. |
+| `primary_weight_update_path` | weight update adapter | yes | Source-reported path plus fail-closed behavior. |
+| `full_fallback` | weight update adapter | yes | Full checkpoint reload or equivalent full-state restore. |
+| `weight_version` | trainer/orchestrator | yes | Monotonic identity on requests, samples, backend state, logs, and evidence. |
+| `cache_policy` | rollout backend adapter | yes | `flush_cache`, version namespace, or source-backed proof. |
+| `logprob_policy` | rollout/trainer adapter | yes | Capture or recompute `old_logprob`; define mismatch threshold. |
+| `topology` | architect | yes | colocated, disaggregated, or PD disaggregation. |
+| `source_ids` | evidence layer | yes | Include backend and validation/risk source IDs. |
+
+## Adapter contracts
+
+- `interface-rollout-backend-adapter`
+- `interface-weight-sync-adapter`
+- `capability-rollout-backend-selection`
+- `validation-logprob-consistency`
+"""
+    if family != "algorithm-data-contract":
         return "# Interfaces\n\nPending RLCR iteration.\n"
     return """# Interfaces
 
@@ -430,7 +572,21 @@ def render_interfaces(contract: dict) -> str:
 
 
 def render_risk_register(contract: dict) -> str:
-    if task_family(contract) != "algorithm-data-contract":
+    family = task_family(contract)
+    if family == "rollout-backend-selection":
+        return """# Risk Register
+
+| risk | severity | mitigation | status |
+|---|---|---|---|
+| target-only backend choice | P1 | Require Target, Generic, Cross-Framework, and Validation & Risk packs before promotion. | open |
+| stale KV/prefix cache | P1 | Require `flush_cache`, versioned cache namespace, or source-backed proof that cache cannot cross `weight_version`. | open |
+| inconsistent logprob | P1 | Run `validation-logprob-consistency` replay/recompute checks before promoting backend selection. | open |
+| partial weight update | P1 | Define primary update path, full fallback, monotonic `weight_version`, and fail-closed rollback. | open |
+| topology mismatch | P1 | Pick colocated, disaggregated, or PD topology before backend promotion. | open |
+| source-reported treated as verified | P1 | Keep GPU/NCCL/multi-node/performance/production claims out unless local logs/artifacts exist. | open |
+| provenance gap | P1 | Cite Wiki page IDs, source IDs, claim IDs, known gaps, and context sidecars. | open |
+"""
+    if family != "algorithm-data-contract":
         return "# Risk Register\n\n| risk | severity | mitigation | status |\n|---|---|---|---|\n| version mismatch | P1 | add weight_version_id validation | open |\n| provenance gap | P1 | cite RLInfraWiki source IDs | open |\n"
     return """# Risk Register
 

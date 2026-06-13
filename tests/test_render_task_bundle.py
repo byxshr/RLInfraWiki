@@ -71,6 +71,48 @@ def test_render_task_bundle_algorithm_data_contract_scaffold(tmp_path):
     assert "failure-sample-schema-drift" in validation_ids
 
 
+def test_render_task_bundle_rollout_backend_selection_scaffold(tmp_path):
+    out = tmp_path / "rollout-backend-task"
+    contract = ROOT / "examples/task_contracts/rollout-backend-selection.yaml"
+    result = render_contract(contract, out)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    plan = (out / "docs" / "plan.md").read_text()
+    draft = (out / "docs" / "draft.md").read_text()
+    architecture = (out / "docs" / "architecture.md").read_text()
+    interfaces = (out / "docs" / "interfaces.md").read_text()
+    risk_register = (out / "docs" / "risk_register.md").read_text()
+
+    assert "## Rollout Backend Selection" in plan
+    assert "`primary_backend`" in plan
+    assert "`fallback_backend`" in plan
+    assert "`weight_version`" in plan
+    assert "flush_cache" in plan
+    assert "logprob policy" in plan
+    assert "No local GPU, NCCL, multi-node, throughput, latency, or production readiness claim" in plan
+    assert "Source-backed evidence" in draft
+    assert "Pending RLCR iteration" not in architecture
+    assert "Pending RLCR iteration" not in interfaces
+    assert "Pending RLCR iteration" not in risk_register
+    assert "## Algorithm Data Contract" not in plan
+
+    bundle = json.loads((out / "context" / "context_bundle.json").read_text())
+    packs = bundle["packs"]
+    generic_ids = {page["page_id"] for page in packs["generic_infra_pack"]}
+    cross_ids = {page["page_id"] for page in packs["cross_framework_pack"]}
+    validation_ids = {page["page_id"] for page in packs["validation_risk_pack"]}
+    assert "capability-rollout-backend-selection" in generic_ids
+    assert "backend-sglang" in generic_ids
+    assert "backend-vllm" in generic_ids
+    assert "comparisons-rollout-backends" in cross_ids
+    assert "pattern-colocated-train-rollout" in cross_ids
+    assert "pattern-disaggregated-train-rollout" in cross_ids
+    assert "pattern-pd-disaggregation" in cross_ids
+    assert "validation-logprob-consistency" in validation_ids
+    assert "failure-stale-kv-cache" in validation_ids
+    assert "failure-inconsistent-logprob" in validation_ids
+
+
 def test_render_task_bundle_refuses_non_empty_workspace(tmp_path):
     out = tmp_path / "task"
     first = render(out)
