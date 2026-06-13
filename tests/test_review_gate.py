@@ -26,6 +26,26 @@ def run_gate(ws):
     )
 
 
+def add_production_claim(ws):
+    (ws / "docs" / "architecture.md").write_text(
+        "# Architecture\n\n"
+        "This production path has a latency-sensitive performance claim.\n"
+    )
+
+
+def load_context_bundle(ws):
+    return json.loads((ws / "context" / "context_bundle.json").read_text())
+
+
+def write_context_bundle_markdown(ws, bundle):
+    (ws / "context" / "context_bundle.md").write_text(
+        "# RLInfraWiki Context Bundle\n\n"
+        "<!-- RLINFRA_CONTEXT_BUNDLE_JSON\n"
+        + json.dumps(bundle, indent=2, sort_keys=False)
+        + "\n-->\n"
+    )
+
+
 def test_review_gate_blocks_p1(tmp_path):
     ws = render_locked_workspace(tmp_path)
     issue = {"id": "review-test-p1", "round_id": "round-001", "severity": "P1", "status": "open", "summary": "missing validation"}
@@ -187,10 +207,7 @@ def test_review_gate_matches_validation_matrix_commands_exactly(tmp_path):
 
 def test_review_gate_requires_parseable_context_for_production_claim(tmp_path):
     ws = render_locked_workspace(tmp_path)
-    (ws / "docs" / "architecture.md").write_text(
-        "# Architecture\n\n"
-        "This production path has a latency-sensitive performance claim.\n"
-    )
+    add_production_claim(ws)
     (ws / "context" / "context_bundle.md").write_text("# Broken Context\n\nNo embedded bundle metadata.\n")
     subprocess.run([
         sys.executable, str(ROOT / "scripts/lock_plan.py"),
@@ -200,3 +217,61 @@ def test_review_gate_requires_parseable_context_for_production_claim(tmp_path):
     result = run_gate(ws)
     assert result.returncode == 1
     assert "performance/production claim lacks parseable context bundle" in result.stdout
+
+
+def test_review_gate_requires_valid_context_for_production_claim(tmp_path):
+    ws = render_locked_workspace(tmp_path)
+    add_production_claim(ws)
+    bundle = load_context_bundle(ws)
+    bundle["packs"]["generic_infra_pack"] = []
+    write_context_bundle_markdown(ws, bundle)
+
+    result = run_gate(ws)
+    assert result.returncode == 1
+    assert "performance/production claim lacks valid context bundle" in result.stdout
+    assert "missing or empty generic_infra_pack" in result.stdout
+
+
+def test_review_gate_requires_validation_risk_pack_for_production_claim(tmp_path):
+    ws = render_locked_workspace(tmp_path)
+    add_production_claim(ws)
+    bundle = load_context_bundle(ws)
+    bundle["packs"]["validation_risk_pack"] = []
+    write_context_bundle_markdown(ws, bundle)
+
+    result = run_gate(ws)
+    assert result.returncode == 1
+    assert "performance/production claim lacks validation/risk context pack" in result.stdout
+
+
+def test_review_gate_requires_validation_risk_source_ids_for_production_claim(tmp_path):
+    ws = render_locked_workspace(tmp_path)
+    add_production_claim(ws)
+    bundle = load_context_bundle(ws)
+    validation_page = bundle["packs"]["validation_risk_pack"][0]
+    validation_page["source_ids"] = []
+    write_context_bundle_markdown(ws, bundle)
+
+    result = run_gate(ws)
+    assert result.returncode == 1
+    assert (
+        "performance/production claim validation/risk page lacks source_ids: "
+        + validation_page["page_id"]
+    ) in result.stdout
+
+
+def test_review_gate_requires_context_sources_validation_map_for_production_claim(tmp_path):
+    ws = render_locked_workspace(tmp_path)
+    add_production_claim(ws)
+    (ws / "context" / "context_sources.yaml").write_text(
+        "target_framework_pages:\n"
+        "- framework-slime\n"
+        "generic_pages:\n"
+        "- interface-weight-sync-adapter\n"
+        "cross_framework_pages:\n"
+        "- framework-verl\n"
+    )
+
+    result = run_gate(ws)
+    assert result.returncode == 1
+    assert "performance/production claim lacks context_sources validation/risk source map" in result.stdout
