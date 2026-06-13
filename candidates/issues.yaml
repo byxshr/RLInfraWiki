@@ -1,0 +1,5 @@
+id: candidate-issues
+name: Upstream issues
+decision: defer
+reason: Issue evidence needs stable URLs, dates, and version-sensitive claim handling.
+source_ids: []

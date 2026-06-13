@@ -1,0 +1,5 @@
+id: candidate-megatron-lm
+name: Megatron-LM
+decision: include
+reason: Trainer backend and checkpoint-conversion reference for RL infra designs.
+source_ids: [repo-nvidia-megatron-lm-readme, doc-megatron-fsdp]

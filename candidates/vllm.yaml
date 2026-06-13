@@ -1,0 +1,5 @@
+id: candidate-vllm
+name: vLLM
+decision: include
+reason: Rollout backend comparison and weight-transfer reference.
+source_ids: [repo-vllm-readme, doc-vllm-training-weight-transfer]

@@ -1,0 +1,5 @@
+id: candidate-papers
+name: RL infra papers
+decision: defer
+reason: Add papers only with stable bibliographic source manifests and summaries.
+source_ids: []

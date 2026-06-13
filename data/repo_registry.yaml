@@ -1,0 +1,26 @@
+repos:
+  slime:
+    repo: THUDM/slime
+    url: https://github.com/THUDM/slime
+    local_path_hint: slime
+    upstream_commit: 0efcab0125eeaf45805b710cb5a84befb75d712c
+  sglang:
+    repo: sgl-project/sglang
+    url: https://github.com/sgl-project/sglang
+    local_path_hint: sglang
+    upstream_commit: 694cea8656373bbef2d1073cab92a6a6857c3d63
+  verl:
+    repo: volcengine/verl
+    url: https://github.com/volcengine/verl
+    local_path_hint: verl
+    upstream_commit: dbbf0853fd322f1b7e8f5b2839a1178790c0b40e
+  roll:
+    repo: alibaba/ROLL
+    url: https://github.com/alibaba/ROLL
+    local_path_hint: ROLL
+    upstream_commit: ef2f5a4db0aa5c3566ea31b4aec9bb47c26d1c33
+  areal:
+    repo: inclusionAI/AReaL
+    url: https://github.com/inclusionAI/AReaL
+    local_path_hint: AReaL
+    upstream_commit: 67bc932cc2e214ffa6cbd26eb640e16e5dc977b5

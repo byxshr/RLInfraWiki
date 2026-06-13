@@ -1,0 +1,17 @@
+interfaces:
+  trainer-backend-adapter:
+    required_fields: [policy_id, training_step, checkpoint_ref]
+  rollout-backend-adapter:
+    required_fields: [prompt, sampling_params, weight_version, request_id]
+  weight-sync-adapter:
+    required_fields: [policy_id, weight_version, training_step, cache_flush_policy]
+  data-buffer-adapter:
+    required_fields: [prompt_id, response_tokens, action_mask, reward, weight_version]
+  reward-service-adapter:
+    required_fields: [request_id, timeout, retry_policy, reward]
+  environment-adapter:
+    required_fields: [episode_id, tool_call_id, observation, done]
+  orchestrator-adapter:
+    required_fields: [role, resource_group, lifecycle_state]
+  algorithm-data-contract:
+    required_fields: [algorithm, sample_fields, invariants]

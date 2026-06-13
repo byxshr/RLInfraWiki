@@ -1,0 +1,5 @@
+id: candidate-verl
+name: verl
+decision: include
+reason: Common RL framework profile and cross-framework target for rollout backend adaptation.
+source_ids: [repo-verl-readme, doc-verl-sglang-worker]

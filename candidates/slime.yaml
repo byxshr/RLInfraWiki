@@ -1,0 +1,5 @@
+id: candidate-slime
+name: THUDM/slime
+decision: include
+reason: P0 source for Megatron + SGLang weight sync and agentic rollout buffer.
+source_ids: [repo-thudm-slime-readme, source-slime-weight-sync-code, source-slime-agentic-buffer]

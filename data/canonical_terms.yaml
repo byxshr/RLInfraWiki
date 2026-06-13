@@ -1,0 +1,10 @@
+canonical_terms:
+  weight-sync: [weight update, refit, update_weights, checkpoint sync]
+  policy-versioning: [policy id, policy version, stale policy]
+  rollout: [generation, sampling, actor rollout]
+  trajectory: [sample, experience, episode]
+  old-logprob: [old_logprobs, behavior logprob]
+  reference-logprob: [ref_logprobs, reference policy logprob]
+  action-mask: [loss mask, response mask]
+  sglang: [sgl, radixattention]
+  megatron-lm: [megatron core, mcore]

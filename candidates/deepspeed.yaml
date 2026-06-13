@@ -1,0 +1,5 @@
+id: candidate-deepspeed
+name: DeepSpeed
+decision: defer
+reason: Potential training backend reference; defer until source manifests are added.
+source_ids: []

@@ -1,0 +1,13 @@
+required_packs:
+  - target_framework_pack
+  - generic_infra_pack
+  - cross_framework_pack
+  - validation_risk_pack
+required_fields:
+  - id
+  - mode
+  - user_task
+  - retrieval_policy
+  - packs
+  - known_gaps
+  - rejected_pages

@@ -1,0 +1,5 @@
+id: candidate-sglang
+name: SGLang
+decision: include
+reason: P0 rollout backend and RL weight update API documentation.
+source_ids: [repo-sglang-readme, doc-sglang-rl-systems, source-sglang-rl-weight-update-refs]

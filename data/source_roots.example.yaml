@@ -1,0 +1,5 @@
+source_roots:
+  local_clone_root: /path/to/local/rl/source/clones
+notes:
+  - Local clones are ingestion backends only.
+  - Wiki pages cite source IDs and source refs, not local relative paths.

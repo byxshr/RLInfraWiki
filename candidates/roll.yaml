@@ -1,0 +1,5 @@
+id: candidate-roll
+name: ROLL
+decision: include
+reason: Ray multi-role RLVR and agentic pipeline design analog.
+source_ids: [repo-alibaba-roll-readme]

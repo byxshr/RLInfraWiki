@@ -1,0 +1,8 @@
+validation_patterns:
+  weight-version-monotonicity: Every update increases or preserves an explicit weight_version.
+  pause-update-resume: Rollout stops or drains before an unsafe weight update.
+  grouped-rollout-invariants: GRPO-style grouped samples preserve group_id and group_size.
+  logprob-consistency: old_logprobs match the behavior policy used for generation.
+  train-infer-schema-match: Rollout samples and trainer batches share required fields.
+  reward-timeout-retry: Reward/verifier calls have bounded retries and failure policy.
+  stale-policy-bound: Async training enforces a maximum policy lag.

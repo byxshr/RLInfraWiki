@@ -1,0 +1,25 @@
+default_design_bundle:
+  name: target-aware-balanced
+  description: Use the target framework, but never allow target-only context.
+  max_pages: 16
+  budgets:
+    target_framework_pack: {min_pages: 1, max_share: 0.35}
+    generic_infra_pack: {min_pages: 3, min_share: 0.25}
+    cross_framework_pack: {min_pages: 3, min_share: 0.25}
+    validation_risk_pack: {min_pages: 2, min_share: 0.10}
+  diversity:
+    min_distinct_frameworks: 3
+    min_page_types: [framework-profile, capability, interface, algorithm, failure-mode]
+  hard_fail:
+    target_only_context: true
+    no_source_backed_pages: true
+    no_validation_pages_for_design_task: true
+
+unknown_framework_bundle:
+  name: generic-first-balanced
+  max_pages: 18
+  budgets:
+    target_framework_pack: {min_pages: 0, max_share: 0.15}
+    generic_infra_pack: {min_share: 0.40}
+    cross_framework_pack: {min_share: 0.35}
+    validation_risk_pack: {min_share: 0.15}

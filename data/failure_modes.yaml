@@ -1,0 +1,10 @@
+failure_modes:
+  partial-weight-update: Partial rollout engine or tensor bucket update.
+  stale-kv-cache: KV/prefix cache survives a weight update incorrectly.
+  inconsistent-logprob: Rollout and training logprob computation diverge.
+  rollout-deadlock: Update and generation locks wait on each other.
+  reward-timeout: Verifier or external reward service hangs or times out.
+  tool-hang: Agent tool call never resolves.
+  sample-schema-drift: Training batch schema drifts from rollout output schema.
+  stale-policy-training: Trainer consumes samples from an unintended policy version.
+  distributed-rank-mismatch: Weight update group rank mapping is inconsistent.

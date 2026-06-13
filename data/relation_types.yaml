@@ -1,0 +1,8 @@
+relation_types:
+  generalizes_to: "Generic page or contract generalized by this page."
+  specialized_by: "Framework or backend specialization."
+  compare_with: "Comparison or alternative design."
+  lessons_from: "Cross-framework lesson source."
+  adapter_targets: "Adapter recipe using this page."
+  failure_modes: "Known risk pages."
+  validation_patterns: "Validation pages proving or checking the contract."

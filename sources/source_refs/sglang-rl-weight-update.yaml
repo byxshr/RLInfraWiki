@@ -1,0 +1,30 @@
+id: source-sglang-rl-weight-update-refs
+name: SGLang RL weight update documentation references
+source_category: doc-line-ref
+repo: sgl-project/sglang
+url: https://github.com/sgl-project/sglang
+local_path: sglang
+captured_at: "2026-06-13"
+upstream_ref: main
+upstream_commit: 694cea8656373bbef2d1073cab92a6a6857c3d63
+license: Apache-2.0
+status: included
+trust_level: primary
+refresh_policy: monthly
+claim_ids:
+  - claim-sglang-disk-weight-update
+  - claim-sglang-tensor-weight-update
+  - claim-sglang-distributed-weight-update
+source_refs:
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "63-107"
+    claim_id: claim-sglang-disk-weight-update
+    sha256: source-reported
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "143-151"
+    claim_id: claim-sglang-tensor-weight-update
+    sha256: source-reported
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "172-202"
+    claim_id: claim-sglang-distributed-weight-update
+    sha256: source-reported

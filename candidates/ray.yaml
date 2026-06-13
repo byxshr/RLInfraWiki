@@ -1,0 +1,5 @@
+id: candidate-ray
+name: Ray
+decision: defer
+reason: Needed for deeper orchestration evidence, but not part of the P0 source-backed corpus yet.
+source_ids: []

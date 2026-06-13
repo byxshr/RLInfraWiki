@@ -1,0 +1,5 @@
+id: candidate-blogs
+name: RL infra blogs
+decision: defer
+reason: Add blogs only when they clarify source-backed engineering patterns.
+source_ids: []

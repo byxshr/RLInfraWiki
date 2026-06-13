@@ -1,0 +1,20 @@
+algorithms:
+  ppo:
+    family: policy-gradient
+    requires_value_model: true
+  grpo:
+    family: policy-gradient
+    requires_grouped_rollouts: true
+  dapo:
+    family: policy-gradient
+    requires_grouped_rollouts: true
+  gspo:
+    family: policy-gradient
+  rloo:
+    family: policy-gradient
+  reinforce-plus-plus:
+    family: policy-gradient
+  rlvr:
+    family: verifier-reward
+  agentic-rl:
+    family: tool-environment

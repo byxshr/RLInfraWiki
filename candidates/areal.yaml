@@ -1,0 +1,5 @@
+id: candidate-areal
+name: AReaL
+decision: include
+reason: Async and agentic RL design analog.
+source_ids: [repo-inclusionai-areal-readme]

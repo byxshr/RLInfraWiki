@@ -1,0 +1,5 @@
+repo: THUDM/slime
+commit: 0efcab0125eeaf45805b710cb5a84befb75d712c
+captured_at: "2026-06-13"
+capture_mode: metadata-only
+notes: No upstream source file is vendored in this artifact bundle.
