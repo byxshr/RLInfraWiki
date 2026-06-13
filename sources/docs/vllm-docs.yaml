@@ -13,6 +13,16 @@ refresh_policy: monthly
 relevance:
   - "RL weight transfer system"
   - "online RL workflow integration"
+  - "IPC and NCCL weight-transfer backends"
+  - "pause/resume and cache-clearing control plane"
 key_paths:
-  - ../vllm/docs/training/weight_transfer/README.md
-claim_ids: []
+  - docs/training/weight_transfer/README.md
+  - docs/training/weight_transfer/ipc.md
+  - docs/training/weight_transfer/nccl.md
+  - docs/training/async_rl.md
+claim_ids:
+  - claim-vllm-rl-weight-transfer-backends
+  - claim-vllm-http-weight-transfer-control-plane
+  - claim-vllm-ipc-colocated-weight-transfer
+  - claim-vllm-nccl-disaggregated-weight-transfer
+  - claim-vllm-pause-resume-cache-control

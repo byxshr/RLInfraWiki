@@ -13,6 +13,11 @@ refresh_policy: monthly
 relevance:
   - "dynamic batching and prefix cache nondeterminism"
   - "deterministic inference flag"
+  - "deterministic inference verification hooks"
 key_paths:
   - docs/references/faq.md
-claim_ids: []
+  - docs/advanced_features/deterministic_inference.md
+claim_ids:
+  - claim-sglang-deterministic-inference-rl-need
+  - claim-sglang-deterministic-inference-backends
+  - claim-sglang-deterministic-test-hooks

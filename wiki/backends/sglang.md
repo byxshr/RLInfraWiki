@@ -22,13 +22,18 @@ tags:
 - radixattention
 - prefix-caching
 - pd-disaggregation
+- rollout-backend-selection
+- code-evidenced
 confidence: source-reported
-reproducibility: concept
+reproducibility: source-reading
+evidence_level: code-evidenced
 sources:
 - repo-sglang-readme
 - doc-sglang-rl-systems
 - doc-sglang-faq-determinism
 - doc-sglang-pd-disaggregation
+- source-sglang-rollout-backend-refs
+- source-sglang-rl-weight-update-refs
 version_sensitive:
 - vs-sglang-main-2026-06-12
 created_at: '2026-06-12'
@@ -40,6 +45,25 @@ risks:
 - nondeterminism
 - cache-staleness
 - partial-weight-update
+claim_ids:
+- claim-sglang-rl-lifecycle-surfaces
+- claim-sglang-sleep-wake-cache-flush
+- claim-sglang-refit-strategy-selection
+- claim-sglang-disk-refit-request-fields
+- claim-sglang-tensor-refit-request-fields
+- claim-sglang-distributed-refit-request-fields
+- claim-sglang-pause-continue-generation
+- claim-sglang-deterministic-inference-rl-need
+- claim-sglang-logprob-request-fields
+- claim-sglang-pd-disaggregation-selection
+- claim-sglang-pd-router
+related_pages:
+- comparisons-rollout-backends
+- capability-rollout-backend-selection
+- pattern-colocated-train-rollout
+- pattern-disaggregated-train-rollout
+- pattern-pd-disaggregation
+- validation-logprob-consistency
 ---
 
 # SGLang
@@ -48,11 +72,14 @@ SGLang is the rollout/refit backend for the P0 slime + Megatron weight sync path
 
 ## Evidence Basis
 
-- `doc-sglang-rl-systems` (`source-sglang-rl-weight-update-refs:docs/advanced_features/sglang_for_rl.md:23`) documents memory-aware sleep/wake for RL loops and states that releasing KV cache causes later requests to rebuild it.
-- `doc-sglang-rl-systems` (`source-sglang-rl-weight-update-refs:docs/advanced_features/sglang_for_rl.md:63`) lists three refit strategies: disk, tensor, and distributed group.
-- `doc-sglang-rl-systems` (`source-sglang-rl-weight-update-refs:docs/advanced_features/sglang_for_rl.md:82`, `:143`, `:172`, `:187`) documents `POST /update_weights_from_disk`, `POST /update_weights_from_tensor`, `POST /init_weights_update_group`, and `POST /update_weights_from_distributed`.
-- `doc-sglang-rl-systems` (`source-sglang-rl-weight-update-refs:docs/advanced_features/sglang_for_rl.md:97`, `:151`, `:197`) includes `flush_cache` fields on weight update paths and `weight_version` fields on disk/tensor/distributed requests.
-- `doc-sglang-faq-determinism` and `source-sglang-rl-weight-update-refs:docs/advanced_features/deterministic_inference.md:150` provide deterministic inference and radix-cache consistency test hooks for mismatch debugging.
+- `source-sglang-rollout-backend-refs` claim `claim-sglang-rl-lifecycle-surfaces` records SGLang's RL lifecycle surfaces: sleep/wake, refit, postponed generation, deterministic inference, and router.
+- Claim `claim-sglang-sleep-wake-cache-flush` records memory-aware sleep/wake and the cache flush behavior after releasing KV cache.
+- Claim `claim-sglang-refit-strategy-selection` records disk, tensor, and distributed refit strategy selection.
+- Claims `claim-sglang-disk-refit-request-fields`, `claim-sglang-tensor-refit-request-fields`, and `claim-sglang-distributed-refit-request-fields` record endpoint fields including `flush_cache` and `weight_version`.
+- Claim `claim-sglang-pause-continue-generation` records the pause-generation/update/continue-generation boundary and pause modes.
+- Claims `claim-sglang-deterministic-inference-rl-need`, `claim-sglang-deterministic-inference-backends`, and `claim-sglang-deterministic-test-hooks` record deterministic inference rationale, backend compatibility, and test hooks.
+- Claim `claim-sglang-logprob-request-fields` records native request fields for returning log probabilities.
+- Claims `claim-sglang-pd-disaggregation-selection` and `claim-sglang-pd-router` record prefill/decode separation and router integration.
 
 ## Design Implications
 
@@ -61,6 +88,7 @@ SGLang is the rollout/refit backend for the P0 slime + Megatron weight sync path
 - Distributed refit is the natural match for disaggregated slime rollout because training workers and rollout engines can join a dedicated NCCL group, but the design must include group creation and teardown.
 - Cache policy is part of correctness. If updated weights change token probabilities, stale KV/prefix cache can invalidate rollout/train logprob comparison.
 - PD disaggregation and Model Gateway routing add separate failure domains; prefill, decode, router health, and cache transfer should be monitored independently.
+- SGLang is a strong first choice for this repository's P0 slime + Megatron path because existing code evidence already covers SGLang refit, `weight_version`, `flush_cache`, and full fallback semantics.
 
 ## Failure Modes
 

@@ -16,7 +16,17 @@ relevance:
   - "disk, tensor, and distributed weight refit APIs"
   - "cache flush and weight version fields"
   - "long-tail rollout and training-inference mismatch"
+  - "pause/continue generation"
+  - "logprob request fields"
 key_paths:
   - docs/advanced_features/sglang_for_rl.md
   - docs_new/docs/advanced_features/sglang_for_rl.mdx
-claim_ids: []
+  - docs/basic_usage/sampling_params.md
+claim_ids:
+  - claim-sglang-rl-lifecycle-surfaces
+  - claim-sglang-sleep-wake-cache-flush
+  - claim-sglang-refit-strategy-selection
+  - claim-sglang-disk-refit-request-fields
+  - claim-sglang-tensor-refit-request-fields
+  - claim-sglang-distributed-refit-request-fields
+  - claim-sglang-logprob-request-fields

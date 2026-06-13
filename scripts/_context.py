@@ -54,6 +54,42 @@ DEFAULT_VALIDATION_IDS = [
     "validation-grouped-rollout-invariants",
 ]
 
+ROLLOUT_BACKEND_SELECTION_GENERIC_IDS = [
+    "capability-rollout-backend-selection",
+    "interface-rollout-backend-adapter",
+    "interface-weight-sync-adapter",
+    "capability-rollout-logprob-capture",
+    "capability-policy-versioning",
+    "algorithm-rlvr",
+    "algorithm-grpo",
+    "backend-sglang",
+    "backend-vllm",
+]
+
+ROLLOUT_BACKEND_SELECTION_CROSS_IDS = [
+    "framework-slime",
+    "framework-roll",
+    "framework-areal",
+    "framework-verl",
+    "comparisons-rollout-backends",
+    "pattern-colocated-train-rollout",
+    "pattern-disaggregated-train-rollout",
+    "pattern-pd-disaggregation",
+    "comparison-cross-framework-lessons",
+]
+
+ROLLOUT_BACKEND_SELECTION_VALIDATION_IDS = [
+    "failure-stale-kv-cache",
+    "failure-inconsistent-logprob",
+    "failure-partial-weight-update",
+    "failure-distributed-rank-mismatch",
+    "validation-logprob-consistency",
+    "validation-train-infer-schema-match",
+    "validation-weight-version-monotonicity",
+    "validation-pause-update-resume",
+    "validation-stale-policy-bound",
+]
+
 ALGORITHM_DATA_CONTRACT_GENERIC_IDS = [
     "algorithm-grpo",
     "algorithm-rlvr",
@@ -86,6 +122,17 @@ def is_algorithm_data_contract_task(task: str) -> bool:
     has_algorithm = any(term in text for term in ["grpo", "rlvr", "ppo", "dapo", "algorithm"])
     has_contract = any(term in text for term in ["data contract", "algorithm data", "sample schema", "logprob"])
     return has_algorithm and has_contract
+
+
+def is_rollout_backend_selection_task(task: str) -> bool:
+    text = task.lower()
+    mentions_rollout_backend = "rollout backend" in text or ("rollout" in text and "backend" in text)
+    mentions_backend_pair = "sglang" in text and "vllm" in text
+    selection_words = ["select", "selection", "choose", "compare", "between", "matrix", "tradeoff", "trade-off"]
+    risk_words = ["cache", "logprob", "weight update", "weight sync", "pd", "colocated", "disaggregated"]
+    return (mentions_rollout_backend or mentions_backend_pair) and (
+        any(word in text for word in selection_words) or any(word in text for word in risk_words)
+    )
 
 
 def now_stamp() -> str:
@@ -186,17 +233,25 @@ def compose_bundle(
     elif target:
         target_ids.append("adapter-adapt-new-framework")
 
-    if is_algorithm_data_contract_task(task):
+    if is_rollout_backend_selection_task(task):
+        generic_ids = list(ROLLOUT_BACKEND_SELECTION_GENERIC_IDS)
+        validation_ids = list(ROLLOUT_BACKEND_SELECTION_VALIDATION_IDS)
+        base_cross_ids = list(ROLLOUT_BACKEND_SELECTION_CROSS_IDS)
+    elif is_algorithm_data_contract_task(task):
         generic_ids = list(ALGORITHM_DATA_CONTRACT_GENERIC_IDS)
         validation_ids = list(ALGORITHM_DATA_CONTRACT_VALIDATION_IDS)
+        base_cross_ids = list(DEFAULT_CROSS_IDS)
     else:
         generic_ids = list(DEFAULT_GENERIC_IDS)
         validation_ids = list(DEFAULT_VALIDATION_IDS)
+        base_cross_ids = list(DEFAULT_CROSS_IDS)
     if "sglang" in task.lower() and "adapter-add-sglang-rollout-backend" in pages:
         generic_ids.append("adapter-add-sglang-rollout-backend")
+    if "vllm" in task.lower() and "adapter-add-vllm-rollout-backend" in pages:
+        generic_ids.append("adapter-add-vllm-rollout-backend")
 
     cross_ids = []
-    for pid in DEFAULT_CROSS_IDS:
+    for pid in base_cross_ids:
         if target and pid == f"framework-{target}":
             continue
         cross_ids.append(pid)
@@ -310,9 +365,15 @@ def render_markdown(bundle: dict[str, Any]) -> str:
     lines.append("")
     lines.append("## Recommended Next Queries")
     lines.append("")
-    lines.append("- `python scripts/get_page.py interface-weight-sync-adapter --follow-sources`")
-    lines.append("- `python scripts/get_page.py algorithm-grpo --follow-sources`")
-    lines.append("- `python scripts/suggest_cross_framework.py --capability weight-sync-distributed --exclude {}`".format(bundle.get("target_framework") or "none"))
+    backends = set(bundle.get("problem_facets", {}).get("backends", []))
+    if {"sglang", "vllm"} <= backends:
+        lines.append("- `python scripts/get_page.py capability-rollout-backend-selection --follow-sources`")
+        lines.append("- `python scripts/get_page.py comparisons-rollout-backends --follow-sources`")
+        lines.append("- `python scripts/get_page.py validation-logprob-consistency --follow-sources`")
+    else:
+        lines.append("- `python scripts/get_page.py interface-weight-sync-adapter --follow-sources`")
+        lines.append("- `python scripts/get_page.py algorithm-grpo --follow-sources`")
+        lines.append("- `python scripts/suggest_cross_framework.py --capability weight-sync-distributed --exclude {}`".format(bundle.get("target_framework") or "none"))
     lines.append("")
     lines.append("<!-- RLINFRA_CONTEXT_BUNDLE_JSON")
     lines.append(json.dumps(bundle, indent=2, sort_keys=False))

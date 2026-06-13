@@ -1,0 +1,101 @@
+id: source-sglang-rollout-backend-refs
+name: SGLang rollout backend, refit, determinism, logprob, and PD references
+source_category: doc-line-ref
+repo: sgl-project/sglang
+url: https://github.com/sgl-project/sglang
+local_path: sglang
+captured_at: "2026-06-13"
+upstream_ref: main
+upstream_commit: 694cea8656373bbef2d1073cab92a6a6857c3d63
+license: Apache-2.0
+status: included
+trust_level: primary
+refresh_policy: monthly
+provenance: local-clone-ingestion-only
+claim_ids:
+  - claim-sglang-rl-lifecycle-surfaces
+  - claim-sglang-sleep-wake-cache-flush
+  - claim-sglang-refit-strategy-selection
+  - claim-sglang-disk-refit-request-fields
+  - claim-sglang-tensor-refit-request-fields
+  - claim-sglang-distributed-refit-request-fields
+  - claim-sglang-pause-continue-generation
+  - claim-sglang-training-inference-mismatch-determinism
+  - claim-sglang-router-rl-control-plane
+  - claim-sglang-deterministic-inference-rl-need
+  - claim-sglang-deterministic-inference-backends
+  - claim-sglang-deterministic-grpo-sampling
+  - claim-sglang-deterministic-test-hooks
+  - claim-sglang-pd-disaggregation-selection
+  - claim-sglang-pd-router
+  - claim-sglang-pd-timeouts-health
+  - claim-sglang-logprob-request-fields
+source_refs:
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "11-18"
+    claim_id: claim-sglang-rl-lifecycle-surfaces
+    sha256: 52a368b9de5bc0ba224168c79cdc4b9d53ca77f0e8369686cc38c7440836b93c
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "23-49"
+    claim_id: claim-sglang-sleep-wake-cache-flush
+    sha256: 54fe6e5f4301099398927f1524e399860c0c58fb7171d0736273b105b9c665a4
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "63-70"
+    claim_id: claim-sglang-refit-strategy-selection
+    sha256: a31d6d03c70ffbec3a7bf120a760c2f4efbb1ab6ca9ed629500f83ad572ac826
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "82-98"
+    claim_id: claim-sglang-disk-refit-request-fields
+    sha256: 858c97e2570951d3adf576dfef4cba5d521afa18e36465fab0a5463f589f074e
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "143-157"
+    claim_id: claim-sglang-tensor-refit-request-fields
+    sha256: 30e4ab783ca08311f2e703dbf22c7d667e3f3a322a406c06074d3b2780598b08
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "159-216"
+    claim_id: claim-sglang-distributed-refit-request-fields
+    sha256: dbda8d425ce8a57bf73943191f70efefb9f34211d0f6c3cc99a1b483dcf6891c
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "218-245"
+    claim_id: claim-sglang-pause-continue-generation
+    sha256: 43173899f8efe95e9370444f0a0b64207629de3187b3f30da22624bdd8362abe
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "246-258"
+    claim_id: claim-sglang-training-inference-mismatch-determinism
+    sha256: 1ce56ca236b936cf4d4de071f5259527b01a0744435a73ea42f8ec1f5e058c2c
+  - path: docs/advanced_features/sglang_for_rl.md
+    line_range: "260-271"
+    claim_id: claim-sglang-router-rl-control-plane
+    sha256: e711ac7d16fbdb85773f7c25731b987457467d7322396ba8d30087b33eb987e8
+  - path: docs/advanced_features/deterministic_inference.md
+    line_range: "5-10"
+    claim_id: claim-sglang-deterministic-inference-rl-need
+    sha256: 5002d2e95c50cc40667318859f362fe3060887f82d88792605925ac053d84816
+  - path: docs/advanced_features/deterministic_inference.md
+    line_range: "17-31"
+    claim_id: claim-sglang-deterministic-inference-backends
+    sha256: 14424f22171e36df18bc54f14685c2f3e99f158376ccdf54dff95f12ced2db60
+  - path: docs/advanced_features/deterministic_inference.md
+    line_range: "79-82"
+    claim_id: claim-sglang-deterministic-grpo-sampling
+    sha256: 1f8fe54994bc5cab02e1bbea29dacb74df1854ea1d8891a3432d2981bd3117cd
+  - path: docs/advanced_features/deterministic_inference.md
+    line_range: "139-154"
+    claim_id: claim-sglang-deterministic-test-hooks
+    sha256: 56f5200241a1df5e2a69d39b925afb2f7feb9f3bdd4958d3daa6e2d5ea699503
+  - path: docs/advanced_features/pd_disaggregation.md
+    line_range: "5-18"
+    claim_id: claim-sglang-pd-disaggregation-selection
+    sha256: bc2e84c02cdcf4f5c0e6f9e005c9883709a516493c9f8a107721d7ed00d6ea47
+  - path: docs/advanced_features/pd_disaggregation.md
+    line_range: "24-27"
+    claim_id: claim-sglang-pd-router
+    sha256: 38c6deee8c4821ccbf30edd0d787b7c1d21e85f3aaff74f2132ade15cd3b6d25
+  - path: docs/advanced_features/pd_disaggregation.md
+    line_range: "145-163"
+    claim_id: claim-sglang-pd-timeouts-health
+    sha256: c19f312de6c790d78421db67bcfed36a8811b3f3a85bc1670b0c4a54bee92406
+  - path: docs/basic_usage/sampling_params.md
+    line_range: "17-23"
+    claim_id: claim-sglang-logprob-request-fields
+    sha256: 3799f43611d18c68eb568a142872e0560ff72ceaa773824dd19558b8d231110f

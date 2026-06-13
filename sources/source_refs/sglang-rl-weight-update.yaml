@@ -19,12 +19,12 @@ source_refs:
   - path: docs/advanced_features/sglang_for_rl.md
     line_range: "63-107"
     claim_id: claim-sglang-disk-weight-update
-    sha256: source-reported
+    sha256: 4cc8f24f656411f4d75901006a9a59346683f3395c77812abac5c1d99bda4b06
   - path: docs/advanced_features/sglang_for_rl.md
     line_range: "143-151"
     claim_id: claim-sglang-tensor-weight-update
-    sha256: source-reported
+    sha256: 852d83d19305435dadfa8e207166bd95fc293f2a66fd47fe19634d8d6975230a
   - path: docs/advanced_features/sglang_for_rl.md
     line_range: "172-202"
     claim_id: claim-sglang-distributed-weight-update
-    sha256: source-reported
+    sha256: 7713696ae9f372375d860b9165e48e4bce7eeb303f62f2429318e739028aa6f4

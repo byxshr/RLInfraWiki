@@ -1,0 +1,86 @@
+id: source-vllm-rollout-backend-refs
+name: vLLM rollout backend and RL weight-transfer documentation references
+source_category: doc-line-ref
+repo: vllm-project/vllm
+url: https://github.com/vllm-project/vllm
+local_path: vllm
+captured_at: "2026-06-13"
+upstream_ref: main
+upstream_commit: 462ef83d58e6fadeb6e216dc583554a6980a0af9
+license: Apache-2.0
+status: included
+trust_level: primary
+refresh_policy: monthly
+provenance: local-clone-ingestion-only
+claim_ids:
+  - claim-vllm-rl-weight-transfer-backends
+  - claim-vllm-http-weight-transfer-control-plane
+  - claim-vllm-ipc-colocated-weight-transfer
+  - claim-vllm-nccl-disaggregated-weight-transfer
+  - claim-vllm-nccl-four-phase-weight-update
+  - claim-vllm-pause-resume-cache-control
+  - claim-vllm-async-rl-stale-kv-boundary
+  - claim-vllm-batch-invariant-rl-determinism
+  - claim-vllm-batch-invariance-tradeoff
+  - claim-vllm-disaggregated-prefill-selection
+  - claim-vllm-disaggregated-prefill-kv-transfer
+  - claim-vllm-multiturn-kv-transfer-cache-ttl
+  - claim-vllm-kv-load-failure-policy
+  - claim-vllm-rlhf-rollout-and-async-rl
+source_refs:
+  - path: docs/training/weight_transfer/README.md
+    line_range: "3-19"
+    claim_id: claim-vllm-rl-weight-transfer-backends
+    sha256: 87fd243db890d47178fbec3ce71c72ca1973182ede82bfdb91c49976bea5c524
+  - path: docs/training/weight_transfer/README.md
+    line_range: "48-61"
+    claim_id: claim-vllm-http-weight-transfer-control-plane
+    sha256: b51b2c2faa064c7761f9f6eeb9d74313d71d8362ae14e0fe1cd8820e15295454
+  - path: docs/training/weight_transfer/ipc.md
+    line_range: "3-23"
+    claim_id: claim-vllm-ipc-colocated-weight-transfer
+    sha256: 608b6d5b5233ab9b498ada05a1a52d24f8cc7de9b664d9c7c24a27ac2974aa0a
+  - path: docs/training/weight_transfer/nccl.md
+    line_range: "3-19"
+    claim_id: claim-vllm-nccl-disaggregated-weight-transfer
+    sha256: 2cf87afefecf659285a2ac744fd7c1ad5e47be46e62e1cc56ef752eedfd3125b
+  - path: docs/training/weight_transfer/nccl.md
+    line_range: "87-127"
+    claim_id: claim-vllm-nccl-four-phase-weight-update
+    sha256: 3b2b2da8636c5be89771cc48ccc2c0466456c0c268259fc1f1345d4a83504ed9
+  - path: docs/training/async_rl.md
+    line_range: "11-29"
+    claim_id: claim-vllm-pause-resume-cache-control
+    sha256: 04768d39368ef2004521b34ec8299018665e2f1306215ebbcf7e10bd82f10a0c
+  - path: docs/training/async_rl.md
+    line_range: "49-60"
+    claim_id: claim-vllm-async-rl-stale-kv-boundary
+    sha256: 205b0cb1cf9d806bfea09ace68b4ce411405a368c6dead1ae60aa39da7ac8ca7
+  - path: docs/features/batch_invariance.md
+    line_range: "7-16"
+    claim_id: claim-vllm-batch-invariant-rl-determinism
+    sha256: 8535642ecba0292f1748f7df38a6b60d92912cbdfb312baa8d502a228e5efa55
+  - path: docs/features/batch_invariance.md
+    line_range: "115-122"
+    claim_id: claim-vllm-batch-invariance-tradeoff
+    sha256: 38aff98c9ba0787f5cc5e0c6a9d90bf7e08dd1aeffc965f59f4851b7a97ba0f5
+  - path: docs/features/disagg_prefill.md
+    line_range: "8-17"
+    claim_id: claim-vllm-disaggregated-prefill-selection
+    sha256: 19d61841159518871258e036eda8bf885d3f6dded65a745fadc5131008d99931
+  - path: docs/features/disagg_prefill.md
+    line_range: "52-62"
+    claim_id: claim-vllm-disaggregated-prefill-kv-transfer
+    sha256: 6a64a48fb3324772731a3b8578ccb6518770ec40956652abeeb1614b53960763
+  - path: docs/features/nixl_connector_usage.md
+    line_range: "129-145"
+    claim_id: claim-vllm-multiturn-kv-transfer-cache-ttl
+    sha256: f02664b078cfcb46caf2a52c5d96c7467c0d71ce23c54ee3d473cff1d133ff24
+  - path: docs/features/nixl_connector_usage.md
+    line_range: "395-401"
+    claim_id: claim-vllm-kv-load-failure-policy
+    sha256: 7c8e152f62e2c807b8ee1e9d688a46dccc887107e4d93ca9ac7f28e2eeffa0ac
+  - path: docs/training/rlhf.md
+    line_range: "3-21"
+    claim_id: claim-vllm-rlhf-rollout-and-async-rl
+    sha256: e00478750b67aeeba48cd4de1d312ea6a6e70f9fc8e89caad4e379e825f62b4b

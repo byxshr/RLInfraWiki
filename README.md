@@ -19,6 +19,19 @@ python scripts/validate.py
 python scripts/generate_indices.py --check
 ```
 
+For rollout backend selection:
+
+```bash
+python scripts/query.py "rollout backend selection SGLang vLLM cache logprob weight update" --limit 10
+python scripts/compose_context.py \
+  --target-framework verl \
+  --task "select rollout backend between SGLang and vLLM for RLVR with cache logprob and weight update risks" \
+  --mode design \
+  --output /tmp/rollout-backend-context.md
+python scripts/validate_context_bundle.py /tmp/rollout-backend-context.md
+python scripts/get_page.py capability-rollout-backend-selection --follow-sources
+```
+
 For unknown frameworks:
 
 ```bash
@@ -35,6 +48,12 @@ python scripts/plan_adapter.py --profile /tmp/smoke-profile.yaml --context /tmp/
 ## Source Policy
 
 Local clones are ingestion backends only. Wiki pages cite stable source IDs, source refs, upstream commits, paths, line ranges, claim IDs, hashes, confidence, and known gaps. Do not vendor full upstream RL framework repositories, and do not mark source-reported claims as locally verified without command, hardware/context, log/artifact, and result evidence.
+
+## Content Status
+
+- Rollout backend selection P1 is code-evidenced/source-reading as of 2026-06-13 through `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs`, and `source-sglang-rl-weight-update-refs`.
+- Primary page ids are `capability-rollout-backend-selection`, `comparisons-rollout-backends`, `backend-vllm`, and `backend-sglang`.
+- Unverified boundaries remain GPU execution, NCCL, multi-node, production deployment, and performance numbers.
 
 ## Main-Repo Integration
 
