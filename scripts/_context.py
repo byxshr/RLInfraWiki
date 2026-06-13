@@ -54,6 +54,39 @@ DEFAULT_VALIDATION_IDS = [
     "validation-grouped-rollout-invariants",
 ]
 
+ALGORITHM_DATA_CONTRACT_GENERIC_IDS = [
+    "algorithm-grpo",
+    "algorithm-rlvr",
+    "interface-algorithm-data-contract",
+    "interface-data-buffer-adapter",
+    "interface-rollout-backend-adapter",
+    "interface-reward-service-adapter",
+    "capability-rollout-logprob-capture",
+    "capability-sample-grouping",
+    "capability-policy-versioning",
+    "capability-reward-verifier",
+    "capability-data-buffer-trajectory",
+]
+
+ALGORITHM_DATA_CONTRACT_VALIDATION_IDS = [
+    "failure-sample-schema-drift",
+    "failure-inconsistent-logprob",
+    "failure-reward-timeout",
+    "failure-stale-policy-training",
+    "validation-logprob-consistency",
+    "validation-grouped-rollout-invariants",
+    "validation-train-infer-schema-match",
+    "validation-stale-policy-bound",
+    "validation-reward-timeout-retry",
+]
+
+
+def is_algorithm_data_contract_task(task: str) -> bool:
+    text = task.lower()
+    has_algorithm = any(term in text for term in ["grpo", "rlvr", "ppo", "dapo", "algorithm"])
+    has_contract = any(term in text for term in ["data contract", "algorithm data", "sample schema", "logprob"])
+    return has_algorithm and has_contract
+
 
 def now_stamp() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -153,7 +186,12 @@ def compose_bundle(
     elif target:
         target_ids.append("adapter-adapt-new-framework")
 
-    generic_ids = list(DEFAULT_GENERIC_IDS)
+    if is_algorithm_data_contract_task(task):
+        generic_ids = list(ALGORITHM_DATA_CONTRACT_GENERIC_IDS)
+        validation_ids = list(ALGORITHM_DATA_CONTRACT_VALIDATION_IDS)
+    else:
+        generic_ids = list(DEFAULT_GENERIC_IDS)
+        validation_ids = list(DEFAULT_VALIDATION_IDS)
     if "sglang" in task.lower() and "adapter-add-sglang-rollout-backend" in pages:
         generic_ids.append("adapter-add-sglang-rollout-backend")
 
@@ -190,7 +228,7 @@ def compose_bundle(
             ),
             "validation_risk_pack": add_existing(
                 pages,
-                DEFAULT_VALIDATION_IDS,
+                validation_ids,
                 "Failure or validation page required by the review gate.",
             ),
         },

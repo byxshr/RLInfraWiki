@@ -150,6 +150,301 @@ def context_coverage_section(bundle: dict) -> str:
     return "\n".join(lines)
 
 
+def task_family(contract: dict) -> str:
+    text = " ".join([
+        str(contract.get("task_name", "")),
+        str(contract.get("objective", "")),
+        " ".join(str(item) for item in contract.get("components", []) or []),
+    ]).lower()
+    if any(term in text for term in ["grpo", "rlvr", "algorithm-data-contract", "algorithm data contract"]):
+        return "algorithm-data-contract"
+    if "weight-sync" in text or "weight synchronization" in text:
+        return "weight-sync"
+    return "generic"
+
+
+def render_draft(contract: dict, bundle: dict) -> str:
+    queries = contract.get("required_wiki_queries", [])
+    family = task_family(contract)
+    sections = [
+        "# Draft",
+        "",
+        "## Task contract summary",
+        "",
+        contract.get("objective", ""),
+        "",
+        knowledge_basis_table(bundle).rstrip(),
+        "",
+        "## RLInfraWiki queries run",
+        "",
+        "| query | top pages | source IDs | notes |",
+        "|---|---|---|---|",
+        *[
+            f"| {q} | see context bundle | see context sources | run query.py for fresh ranking |"
+            for q in queries
+        ],
+        "",
+        "## Candidate directions",
+        "",
+    ]
+    if family == "algorithm-data-contract":
+        sections.extend([
+            "### Candidate A: minimal slime-compatible GRPO/RLVR data contract",
+            "",
+            "Define a small `AlgorithmDataContract` between rollout, reward/verifier, data buffer, and trainer. Required fields include `sample_id`, `prompt`, `response`, token IDs, action/attention mask, `old_logprob`, optional `reference_logprob`, reward/verifier outputs, `group_id`, `policy_version`, rollout backend identity, and provenance IDs. Required pages include `interface-algorithm-data-contract`, `capability-rollout-logprob-capture`, `capability-sample-grouping`, and `framework-slime`.",
+            "",
+            "### Candidate B: staged adapter migration",
+            "",
+            "Keep existing slime rollout/data-buffer flow intact first, then add schema validation, reward timeout handling, grouped sample invariants, and stale-policy filtering before trainer consumption. Required pages include `interface-data-buffer-adapter`, `interface-reward-service-adapter`, `failure-sample-schema-drift`, and `validation-logprob-consistency`.",
+            "",
+            "## Failure modes to carry forward",
+            "",
+            "- Sample schema drift between rollout output and trainer input.",
+            "- Missing or semantically inconsistent `old_logprob` / `reference_logprob`.",
+            "- Reward/verifier timeout or partial reward rows.",
+            "- Grouped GRPO samples with incomplete or mixed-policy groups.",
+            "- Stale policy samples accepted beyond the configured lag bound.",
+        ])
+    elif family == "weight-sync":
+        sections.extend([
+            "### Candidate A: distributed primary sync",
+            "",
+            "Primary sync path: Megatron trainer publishes a new `weight_version`, pauses or drains SGLang rollout, transfers weights through the selected distributed/tensor path, requests `flush_cache`, verifies rollout engines report the new version, then resumes generation. Required pages include `interface-weight-sync-adapter`, `capability-weight-sync-distributed`, and `framework-slime`.",
+            "",
+            "### Candidate B: full checkpoint fallback",
+            "",
+            "Full fallback: publish an immutable full checkpoint directory, call the backend disk reload path with the same `weight_version`, request `flush_cache`, and fail closed if any engine cannot confirm the update. Required pages include `capability-weight-sync-disk`, `failure-partial-weight-update`, and `validation-weight-version-monotonicity`.",
+            "",
+            "## Failure modes to carry forward",
+            "",
+            "- Partial update across rollout engines or buckets.",
+            "- Stale KV/prefix cache after rollout resumes.",
+            "- Missing `weight_version` on samples, logs, or trainer batches.",
+            "- Distributed rank/world-size mismatch.",
+            "- Delta baseline drift requiring full checkpoint resync.",
+        ])
+    else:
+        sections.extend([
+            "### Candidate A: target-aware adapter plan",
+            "",
+            "Anchor the design in the target framework while carrying generic RL infrastructure interfaces, cross-framework analogs, and validation/risk pages from the context bundle.",
+            "",
+            "### Candidate B: generic-first migration plan",
+            "",
+            "Start from stable interface contracts and map them into target framework symbols only after source inspection.",
+        ])
+    return "\n".join(sections) + "\n"
+
+
+def render_plan(contract: dict, bundle: dict) -> str:
+    family = task_family(contract)
+    sections = [
+        "# Executable Plan",
+        "",
+        "## Objective",
+        "",
+        contract.get("objective", ""),
+        "",
+        "## Non-goals",
+        "",
+        "- Do not implement a new RL framework.",
+        "- Do not make unverified performance claims.",
+        "",
+        "## Chosen architecture",
+        "",
+    ]
+    if family == "algorithm-data-contract":
+        sections.extend([
+            "Design a slime-compatible GRPO/RLVR data contract across rollout, reward/verifier, data buffer, and trainer boundaries. The first implementation batch should be schema-first: inspect current slime sample fields, map required algorithm fields, add compatibility adapters, and reject or quarantine samples that fail validation.",
+            "",
+            "## Algorithm Data Contract",
+            "",
+            "- rollout identity: `sample_id`, prompt/source ID, rollout backend, `policy_version`, optional `weight_version` when weight sync is involved.",
+            "- token payload: prompt/response token IDs, action mask, attention mask, stop reason, and per-token alignment metadata.",
+            "- policy statistics: behavior `old_logprob`, optional `reference_logprob`, entropy or mask metadata when required by the algorithm.",
+            "- grouping: `group_id`, group size, completion index, and invariant checks for GRPO-style grouped advantages.",
+            "- reward/verifier: scalar reward, verifier labels, timeout/retry status, and provenance for reward service versions.",
+            "- trainer handoff: advantage inputs, loss mask, stale-policy decision, and source IDs for every inferred field.",
+            "",
+            "## Slime integration points to inspect",
+            "",
+            "- rollout worker output and SGLang/vLLM response adapters.",
+            "- data-buffer append, storage, and trainer batch materialization paths.",
+            "- reward/verifier hooks and timeout behavior.",
+            "- policy/version metadata propagation from trainer to rollout and back.",
+        ])
+    elif family == "weight-sync":
+        sections.extend([
+            "Primary path: target-aware weight sync from Megatron training to SGLang rollout using explicit `weight_version`, pause/drain, transfer, verify, `flush_cache`, and resume boundaries.",
+            "",
+            "Fallback path: full checkpoint reload remains available for partial update, delta baseline drift, distributed group failure, or uncertain cache state.",
+            "",
+            "Every implementation batch must cite the Wiki page IDs and source IDs in `context/context_sources.yaml`.",
+        ])
+    else:
+        sections.append("Use the target framework pack as the anchor, then apply generic infrastructure contracts, cross-framework lessons, and validation/risk pages from the context bundle.")
+    sections.extend([
+        "",
+        "## Alternatives considered",
+        "",
+        "- Primary framework path.",
+        "- Reference framework fallback.",
+        "",
+        "## Dataflow",
+        "",
+    ])
+    if family == "algorithm-data-contract":
+        sections.append("prompt source -> rollout request -> inference backend -> token/logprob output -> reward/verifier -> trajectory/sample schema -> data buffer -> grouped trainer batch -> loss computation -> metrics/traces")
+    else:
+        sections.append("prompt source -> rollout request -> inference backend -> tool/env interaction -> reward/verifier -> trajectory object -> data buffer -> trainer batch -> gradient update -> weight sync -> rollout version update -> metrics/traces")
+    sections.extend([
+        "",
+        context_coverage_section(bundle).rstrip(),
+        "",
+    ])
+    if family == "algorithm-data-contract":
+        sections.extend([
+            "## GRPO/RLVR Contract Checks",
+            "",
+            "- `old_logprob`: produced by rollout backend or recompute path and attached before trainer consumption.",
+            "- `reference_logprob`: either produced, explicitly marked unavailable, or scheduled for reference-model recompute.",
+            "- `group_id`: stable across all completions for a prompt and never mixes policy versions.",
+            "- `policy_version`: attached to request, sample, reward rows, data-buffer records, trainer batch, and evidence.",
+            "- reward/verifier output: records timeout/retry state and never silently defaults failed rewards.",
+            "- failure modes: sample schema drift, inconsistent logprob, reward timeout, stale policy training, incomplete groups.",
+            "- required Wiki/source IDs: `framework-slime`, `interface-algorithm-data-contract`, `capability-rollout-logprob-capture`, `capability-sample-grouping`, `capability-policy-versioning`, `failure-sample-schema-drift`, `validation-logprob-consistency`.",
+        ])
+    elif family == "weight-sync":
+        sections.extend([
+            "## P0 Sync Contract",
+            "",
+            "- primary sync path: distributed/tensor update when the target lifecycle and backend support it.",
+            "- full fallback: immutable full checkpoint reload with the same `weight_version`.",
+            "- `weight_version`: attached to update requests, rollout engine state, samples, trainer batches, logs, and evidence.",
+            "- `flush_cache`: required unless the design proves cache namespacing or invalidation by version.",
+            "- failure modes: partial update, stale KV cache, inconsistent logprob, rollout deadlock, distributed rank mismatch, delta baseline drift.",
+            "- required Wiki/source IDs: `framework-slime`, `interface-weight-sync-adapter`, `capability-weight-sync-distributed`, `capability-weight-sync-disk`, `failure-partial-weight-update`, `validation-weight-version-monotonicity`, `source-slime-weight-sync-code`, `source-sglang-rl-weight-update-refs`.",
+        ])
+    sections.extend([
+        "",
+        "## APIs and interfaces",
+        "",
+        "Document trainer, rollout, reward, environment, and evidence interfaces.",
+        "",
+        "## State and storage",
+        "",
+        "Track task config, policy version, weight version when applicable, evidence path, and review issue state.",
+        "",
+        "## Failure modes",
+        "",
+        "Version mismatch, schema drift, delayed reward, nondeterminism, and rollback gap.",
+        "",
+        "## Observability",
+        "",
+        "Metrics, traces, logs, and validation evidence are required before review.",
+        "",
+        "## Implementation steps",
+        "",
+        "### Step 1",
+        "",
+        "- Files: docs/*",
+        "- Changes: finalize design and validation matrix",
+        "- Tests: run validation commands",
+        "- Acceptance: criteria mapped to evidence",
+        "",
+        "## Validation commands",
+        "",
+        *[f"- `{cmd}`" for cmd in contract.get("validation_commands", [])],
+        "",
+        "## Rollback plan",
+        "",
+        "Revert candidate changes, restore prior plan lock, and mark unresolved review issues open.",
+        "",
+        "## Promotion criteria",
+        "",
+        *[f"- {item}" for item in contract.get("promotion_criteria", [])],
+        "",
+        "## Review checklist",
+        "",
+        "- Goal alignment",
+        "- Source provenance",
+        "- Validation evidence",
+        "- Failure modes and rollback",
+        "- Open review issues and waivers",
+    ])
+    return "\n".join(sections) + "\n"
+
+
+def render_architecture(contract: dict, bundle: dict) -> str:
+    if task_family(contract) != "algorithm-data-contract":
+        return "# Architecture\n\nPending RLCR iteration.\n"
+    return """# Architecture
+
+## Target
+
+Design a slime-compatible GRPO/RLVR data contract. This is a source-traceable design and implementation plan, not a verified runtime implementation.
+
+## Flow
+
+slime trainer config -> rollout request -> rollout backend token/logprob output -> reward/verifier result -> data-buffer record -> grouped trainer batch -> loss inputs -> validation evidence.
+
+## Required boundaries
+
+- Rollout backend owns token generation, behavior logprob capture, stop reason, and backend provenance.
+- Reward/verifier owns scalar reward, verifier labels, timeout/retry state, and reward service version.
+- Data buffer owns schema validation, group completeness, policy-version checks, and trainer-batch materialization.
+- Trainer owns advantage computation, loss masks, stale-policy decision, and update evidence.
+
+## Open gaps
+
+- Source-reported framework behavior has not been locally reproduced with GPU/NCCL/multi-node execution.
+- Slime source symbols should be inspected before implementation changes.
+"""
+
+
+def render_interfaces(contract: dict) -> str:
+    if task_family(contract) != "algorithm-data-contract":
+        return "# Interfaces\n\nPending RLCR iteration.\n"
+    return """# Interfaces
+
+## AlgorithmDataContract sample fields
+
+| field | owner | required for GRPO/RLVR | notes |
+|---|---|---:|---|
+| `sample_id` | rollout/data buffer | yes | Stable evidence key for replay and debugging. |
+| `prompt_tokens` / `response_tokens` | rollout backend | yes | Must preserve alignment with masks and logprobs. |
+| `action_mask` / `loss_mask` | rollout/backend or trainer adapter | yes | Prevents prompt tokens from entering completion loss. |
+| `old_logprob` | rollout backend or recompute path | yes | Behavior-policy logprob consumed by trainer loss. |
+| `reference_logprob` | reference model or recompute path | task-dependent | Required when KL/reference-policy control is enabled. |
+| `reward` / verifier labels | reward service | yes | Include timeout/retry/provenance state. |
+| `group_id` | sampler/data buffer | yes for GRPO | Group completeness and same-policy invariants are mandatory. |
+| `policy_version` | trainer/orchestrator | yes | Used to bound stale-policy samples. |
+
+## Adapter contracts
+
+- `interface-algorithm-data-contract`
+- `interface-data-buffer-adapter`
+- `interface-rollout-backend-adapter`
+- `interface-reward-service-adapter`
+"""
+
+
+def render_risk_register(contract: dict) -> str:
+    if task_family(contract) != "algorithm-data-contract":
+        return "# Risk Register\n\n| risk | severity | mitigation | status |\n|---|---|---|---|\n| version mismatch | P1 | add weight_version_id validation | open |\n| provenance gap | P1 | cite RLInfraWiki source IDs | open |\n"
+    return """# Risk Register
+
+| risk | severity | mitigation | status |
+|---|---|---|---|
+| sample schema drift | P1 | Validate every data-buffer record against `interface-algorithm-data-contract`. | open |
+| inconsistent logprob | P1 | Add `validation-logprob-consistency` checks and replay evidence. | open |
+| incomplete GRPO group | P1 | Enforce `validation-grouped-rollout-invariants` before trainer consumption. | open |
+| reward timeout | P1 | Record timeout/retry state and fail closed on missing verifier output. | open |
+| stale policy training | P1 | Bound accepted policy lag with `validation-stale-policy-bound`. | open |
+| unverified runtime claim | P1 | Keep claims `source-reported` or `inferred` unless local logs/artifacts prove them. | open |
+"""
+
+
 def render_bundle(contract_path: Path, output: Path, preserve_ledgers: bool = False, preserve_human_docs: bool = False) -> None:
     contract = read_task_contract(contract_path)
     validate_contract_schema(contract, contract_path)
@@ -166,93 +461,14 @@ def render_bundle(contract_path: Path, output: Path, preserve_ledgers: bool = Fa
     shutil.copyfile(contract_path, output / "task_contract.yaml")
     doc_writer = write_if_missing if preserve_human_docs else write
     doc_writer(output / "docs" / "goal.md", render_goal(contract))
-    queries = contract.get("required_wiki_queries", [])
-    doc_writer(output / "docs" / "draft.md", "# Draft\n\n## Task contract summary\n\n" + contract.get("objective", "") + "\n\n" + knowledge_basis_table(bundle) + "## RLInfraWiki queries run\n\n| query | top pages | source IDs | notes |\n|---|---|---|---|\n" + "".join(f"| {q} | see context bundle | see context sources | run query.py for fresh ranking |\n" for q in queries) + "\n## Candidate directions\n\n### Candidate A: distributed primary sync\n\nPrimary sync path: Megatron trainer publishes a new `weight_version`, pauses or drains SGLang rollout, transfers weights through the selected distributed/tensor path, requests `flush_cache`, verifies rollout engines report the new version, then resumes generation. Required pages include `interface-weight-sync-adapter`, `capability-weight-sync-distributed`, and `framework-slime`.\n\n### Candidate B: full checkpoint fallback\n\nFull fallback: publish an immutable full checkpoint directory, call the backend disk reload path with the same `weight_version`, request `flush_cache`, and fail closed if any engine cannot confirm the update. Required pages include `capability-weight-sync-disk`, `failure-partial-weight-update`, and `validation-weight-version-monotonicity`.\n\n## Failure modes to carry forward\n\n- Partial update across rollout engines or buckets.\n- Stale KV/prefix cache after rollout resumes.\n- Missing `weight_version` on samples, logs, or trainer batches.\n- Distributed rank/world-size mismatch.\n- Delta baseline drift requiring full checkpoint resync.\n")
-    doc_writer(output / "docs" / "plan.md", f"""# Executable Plan
-
-## Objective
-
-{contract.get('objective', '')}
-
-## Non-goals
-
-- Do not implement a new RL framework.
-- Do not make unverified performance claims.
-
-## Chosen architecture
-
-Primary path: target-aware weight sync from Megatron training to SGLang rollout using explicit `weight_version`, pause/drain, transfer, verify, `flush_cache`, and resume boundaries.
-
-Fallback path: full checkpoint reload remains available for partial update, delta baseline drift, distributed group failure, or uncertain cache state.
-
-Every implementation batch must cite the Wiki page IDs and source IDs in `context/context_sources.yaml`.
-
-## Alternatives considered
-
-- Primary framework path.
-- Reference framework fallback.
-
-## Dataflow
-
-prompt source -> rollout request -> inference backend -> tool/env interaction -> reward/verifier -> trajectory object -> data buffer -> trainer batch -> gradient update -> weight sync -> rollout version update -> metrics/traces
-
-""" + context_coverage_section(bundle) + """
-## P0 Sync Contract
-
-- primary sync path: distributed/tensor update when the target lifecycle and backend support it.
-- full fallback: immutable full checkpoint reload with the same `weight_version`.
-- `weight_version`: attached to update requests, rollout engine state, samples, trainer batches, logs, and evidence.
-- `flush_cache`: required unless the design proves cache namespacing or invalidation by version.
-- failure modes: partial update, stale KV cache, inconsistent logprob, rollout deadlock, distributed rank mismatch, delta baseline drift.
-- required Wiki/source IDs: `framework-slime`, `interface-weight-sync-adapter`, `capability-weight-sync-distributed`, `capability-weight-sync-disk`, `failure-partial-weight-update`, `validation-weight-version-monotonicity`, `source-slime-weight-sync-code`, `source-sglang-rl-weight-update-refs`.
-
-## APIs and interfaces
-
-Document trainer, rollout, reward, environment, and evidence interfaces.
-
-## State and storage
-
-Track task config, policy version, weight version, evidence path, and review issue state.
-
-## Failure modes
-
-Version mismatch, partial weight update, delayed reward, nondeterminism, and rollback gap.
-
-## Observability
-
-Metrics, traces, logs, and validation evidence are required before review.
-
-## Implementation steps
-
-### Step 1
-
-- Files: docs/*
-- Changes: finalize design and validation matrix
-- Tests: run validation commands
-- Acceptance: criteria mapped to evidence
-
-## Validation commands
-
-""" + "".join(f"- `{cmd}`\n" for cmd in contract.get("validation_commands", [])) + """
-## Rollback plan
-
-Revert candidate changes, restore prior plan lock, and mark unresolved review issues open.
-
-## Promotion criteria
-
-""" + "".join(f"- {item}\n" for item in contract.get("promotion_criteria", [])) + """
-## Review checklist
-
-- Goal alignment
-- Source provenance
-- Validation evidence
-- Failure modes and rollback
-- Open review issues and waivers
-""")
-    for name, title in [("architecture.md", "Architecture"), ("interfaces.md", "Interfaces"), ("review.md", "Review"), ("codex_tasks.md", "Codex Tasks")]:
+    doc_writer(output / "docs" / "draft.md", render_draft(contract, bundle))
+    doc_writer(output / "docs" / "plan.md", render_plan(contract, bundle))
+    doc_writer(output / "docs" / "architecture.md", render_architecture(contract, bundle))
+    doc_writer(output / "docs" / "interfaces.md", render_interfaces(contract))
+    for name, title in [("review.md", "Review"), ("codex_tasks.md", "Codex Tasks")]:
         doc_writer(output / "docs" / name, f"# {title}\n\nPending RLCR iteration.\n")
     doc_writer(output / "docs" / "validation_matrix.md", "# Validation Matrix\n\n| requirement | validation command | expected result | evidence path | status |\n|---|---|---|---|---|\n" + "".join(f"| contract validation | `{cmd}` | exits 0 | evidence/{i:02d}-validation.log | pending |\n" for i, cmd in enumerate(contract.get("validation_commands", []), 1)))
-    doc_writer(output / "docs" / "risk_register.md", "# Risk Register\n\n| risk | severity | mitigation | status |\n|---|---|---|---|\n| version mismatch | P1 | add weight_version_id validation | open |\n| provenance gap | P1 | cite RLInfraWiki source IDs | open |\n")
+    doc_writer(output / "docs" / "risk_register.md", render_risk_register(contract))
     doc_writer(output / "docs" / "goal_status.md", f"# Goal Status\n\n- status: active\n- updated_at: {now_iso()}\n")
     write(output / ".humanize" / "rlcr_config.yaml", f"""mode: {contract.get('review_mode', 'humanize-compatible-rlcr')}
 builder: {contract.get('builder', 'claude')}

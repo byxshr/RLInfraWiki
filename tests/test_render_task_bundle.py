@@ -20,9 +20,13 @@ SCAFFOLDED_DOCS = [
 
 
 def render(out, *extra_args):
+    return render_contract(ROOT / "examples/task_contracts/slime-weight-sync.yaml", out, *extra_args)
+
+
+def render_contract(contract, out, *extra_args):
     return subprocess.run([
         sys.executable, str(ROOT / "scripts/render_task_bundle.py"),
-        "--contract", str(ROOT / "examples/task_contracts/slime-weight-sync.yaml"),
+        "--contract", str(contract),
         "--output", str(out),
         *extra_args,
     ], cwd=ROOT, text=True, capture_output=True)
@@ -35,6 +39,36 @@ def test_render_task_bundle(tmp_path):
     assert (out / "docs/goal.md").exists()
     assert (out / ".humanize/rlcr_config.yaml").exists()
     assert (out / "review_issues.jsonl").exists()
+
+
+def test_render_task_bundle_algorithm_data_contract_scaffold(tmp_path):
+    out = tmp_path / "algorithm-task"
+    contract = ROOT / "examples/task_contracts/slime-grpo-rlvr-data-contract.yaml"
+    result = render_contract(contract, out)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    plan = (out / "docs" / "plan.md").read_text()
+    draft = (out / "docs" / "draft.md").read_text()
+    interfaces = (out / "docs" / "interfaces.md").read_text()
+    assert "## Algorithm Data Contract" in plan
+    assert "`old_logprob`" in plan
+    assert "`group_id`" in interfaces
+    assert "sample schema drift" in draft
+    assert "## P0 Sync Contract" not in plan
+
+    bundle = json.loads((out / "context" / "context_bundle.json").read_text())
+    generic_ids = {
+        page["page_id"]
+        for page in bundle["packs"]["generic_infra_pack"]
+    }
+    validation_ids = {
+        page["page_id"]
+        for page in bundle["packs"]["validation_risk_pack"]
+    }
+    assert "interface-algorithm-data-contract" in generic_ids
+    assert "capability-rollout-logprob-capture" in generic_ids
+    assert "validation-logprob-consistency" in validation_ids
+    assert "failure-sample-schema-drift" in validation_ids
 
 
 def test_render_task_bundle_refuses_non_empty_workspace(tmp_path):
