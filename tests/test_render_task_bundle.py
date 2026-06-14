@@ -113,6 +113,51 @@ def test_render_task_bundle_rollout_backend_selection_scaffold(tmp_path):
     assert "failure-inconsistent-logprob" in validation_ids
 
 
+def test_render_task_bundle_training_rollout_mismatch_debug_scaffold(tmp_path):
+    out = tmp_path / "mismatch-debug-task"
+    contract = ROOT / "examples/task_contracts/training-rollout-mismatch-debug.yaml"
+    result = render_contract(contract, out)
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    plan = (out / "docs" / "plan.md").read_text()
+    draft = (out / "docs" / "draft.md").read_text()
+    architecture = (out / "docs" / "architecture.md").read_text()
+    interfaces = (out / "docs" / "interfaces.md").read_text()
+    risk_register = (out / "docs" / "risk_register.md").read_text()
+
+    assert "## Debugging Packet" in plan
+    assert "### Symptom" in plan
+    assert "### Evidence To Collect" in plan
+    assert "### Hypothesis Matrix" in plan
+    assert "### Replay/Recompute Checklist" in plan
+    assert "### Version Cache Logprob Schema Matrix" in plan
+    assert "### Failure Isolation Order" in plan
+    assert "### Stop Conditions" in plan
+    assert "### Non-Claims" in plan
+    assert "`policy_version`" in plan
+    assert "`weight_version`" in plan
+    assert "cache policy" in plan
+    assert "schema policy" in plan
+    assert "Source-reported backend/framework behavior remains source-reported" in plan
+    assert "## P0 Sync Contract" not in plan
+    assert "Source-backed evidence" in draft
+    assert "Pending RLCR iteration" not in architecture
+    assert "Pending RLCR iteration" not in interfaces
+    assert "Pending RLCR iteration" not in risk_register
+
+    bundle = json.loads((out / "context" / "context_bundle.json").read_text())
+    packs = bundle["packs"]
+    assert bundle["mode"] == "debug"
+    generic_ids = {page["page_id"] for page in packs["generic_infra_pack"]}
+    validation_ids = {page["page_id"] for page in packs["validation_risk_pack"]}
+    assert "recipe-debug-training-rollout-mismatch" in generic_ids
+    assert "observability-training-inference-mismatch" in generic_ids
+    assert "observability-debug-playbook" in generic_ids
+    assert "validation-logprob-consistency" in validation_ids
+    assert "failure-sample-schema-drift" in validation_ids
+    assert "failure-stale-policy-training" in validation_ids
+
+
 def test_render_task_bundle_refuses_non_empty_workspace(tmp_path):
     out = tmp_path / "task"
     first = render(out)

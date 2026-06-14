@@ -27,3 +27,21 @@ def test_query_finds_rollout_backend_selection_dictionary_pages():
     assert result.returncode == 0, result.stderr
     assert "capability-rollout-backend-selection" in result.stdout
     assert "comparisons-rollout-backends" in result.stdout
+
+
+def test_query_finds_training_rollout_mismatch_debug_pages():
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/query.py"),
+            "training rollout mismatch logprob policy_version cache schema drift",
+            "--limit",
+            "8",
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "recipe-debug-training-rollout-mismatch" in result.stdout
+    assert "observability-training-inference-mismatch" in result.stdout

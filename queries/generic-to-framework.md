@@ -32,9 +32,9 @@
 | `failure-partial-weight-update` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `source-slime-weight-sync-code`, `source-sglang-rl-weight-update-refs` |
 | `failure-reward-timeout` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
 | `failure-rollout-deadlock` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
-| `failure-sample-schema-drift` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
+| `failure-sample-schema-drift` | `slime`, `verl`, `roll`, `areal` | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
 | `failure-stale-kv-cache` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `source-slime-weight-sync-code`, `source-sglang-rl-weight-update-refs`, `source-sglang-rollout-backend-refs`, `source-vllm-rollout-backend-refs` |
-| `failure-stale-policy-training` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
+| `failure-stale-policy-training` | `slime`, `verl`, `roll`, `areal` | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
 | `failure-tool-hang` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
 | `interface-algorithm-data-contract` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |
 | `interface-data-buffer-adapter` |  | `repo-thudm-slime-readme`, `doc-sglang-rl-systems`, `repo-verl-readme`, `repo-alibaba-roll-readme`, `repo-inclusionai-areal-readme` |

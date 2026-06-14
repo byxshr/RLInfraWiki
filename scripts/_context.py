@@ -116,22 +116,84 @@ ALGORITHM_DATA_CONTRACT_VALIDATION_IDS = [
     "validation-reward-timeout-retry",
 ]
 
+TRAINING_ROLLOUT_MISMATCH_GENERIC_IDS = [
+    "recipe-debug-training-rollout-mismatch",
+    "observability-training-inference-mismatch",
+    "observability-debug-playbook",
+    "interface-algorithm-data-contract",
+    "interface-rollout-backend-adapter",
+    "capability-rollout-logprob-capture",
+    "capability-policy-versioning",
+    "capability-sample-grouping",
+    "algorithm-grpo",
+]
+
+TRAINING_ROLLOUT_MISMATCH_CROSS_IDS = [
+    "framework-slime",
+    "framework-verl",
+    "framework-roll",
+    "framework-areal",
+    "comparisons-rollout-backends",
+    "pattern-colocated-train-rollout",
+    "pattern-disaggregated-train-rollout",
+    "comparison-cross-framework-lessons",
+]
+
+TRAINING_ROLLOUT_MISMATCH_VALIDATION_IDS = [
+    "validation-logprob-consistency",
+    "validation-train-infer-schema-match",
+    "validation-weight-version-monotonicity",
+    "validation-stale-policy-bound",
+    "failure-inconsistent-logprob",
+    "failure-stale-kv-cache",
+    "failure-sample-schema-drift",
+    "failure-stale-policy-training",
+]
+
+
+def normalized_task_text(task: str) -> str:
+    return task.lower().replace("_", " ").replace("-", " ")
+
 
 def is_algorithm_data_contract_task(task: str) -> bool:
-    text = task.lower()
+    text = normalized_task_text(task)
     has_algorithm = any(term in text for term in ["grpo", "rlvr", "ppo", "dapo", "algorithm"])
     has_contract = any(term in text for term in ["data contract", "algorithm data", "sample schema", "logprob"])
     return has_algorithm and has_contract
 
 
 def is_rollout_backend_selection_task(task: str) -> bool:
-    text = task.lower()
+    text = normalized_task_text(task)
     mentions_rollout_backend = "rollout backend" in text or ("rollout" in text and "backend" in text)
     mentions_backend_pair = "sglang" in text and "vllm" in text
     selection_words = ["select", "selection", "choose", "compare", "between", "matrix", "tradeoff", "trade-off"]
     risk_words = ["cache", "logprob", "weight update", "weight sync", "pd", "colocated", "disaggregated"]
     return (mentions_rollout_backend or mentions_backend_pair) and (
         any(word in text for word in selection_words) or any(word in text for word in risk_words)
+    )
+
+
+def is_training_rollout_mismatch_debug_task(task: str, mode: str = "design") -> bool:
+    text = normalized_task_text(task)
+    mentions_boundary = ("training" in text or "trainer" in text) and ("rollout" in text or "inference" in text)
+    mentions_debug = any(term in text for term in ["debug", "mismatch", "drift", "replay", "recompute"])
+    mentions_signal = any(
+        term in text
+        for term in [
+            "logprob",
+            "old logprob",
+            "policy version",
+            "weight version",
+            "cache",
+            "kv",
+            "schema",
+            "token",
+            "mask",
+            "stale policy",
+        ]
+    )
+    return (mode == "debug" and mentions_boundary and mentions_signal) or (
+        mentions_boundary and mentions_debug and mentions_signal
     )
 
 
@@ -191,7 +253,7 @@ def add_existing(pages: dict[str, dict[str, Any]], ids: list[str], why: str) -> 
 def infer_facets(task: str) -> dict[str, list[str]]:
     text = task.lower()
     facets = {"components": [], "algorithms": [], "backends": [], "deployment_modes": []}
-    for component in ["rollout", "weight-sync", "training", "data-buffer", "reward", "scheduler", "environment"]:
+    for component in ["rollout", "weight-sync", "training", "data-buffer", "reward", "scheduler", "environment", "observability"]:
         if component.replace("-", " ") in text or component in text:
             facets["components"].append(component)
     for algorithm in ["grpo", "ppo", "rlvr", "agentic-rl", "dapo", "gspo", "rloo"]:
@@ -233,7 +295,11 @@ def compose_bundle(
     elif target:
         target_ids.append("adapter-adapt-new-framework")
 
-    if is_rollout_backend_selection_task(task):
+    if is_training_rollout_mismatch_debug_task(task, mode):
+        generic_ids = list(TRAINING_ROLLOUT_MISMATCH_GENERIC_IDS)
+        validation_ids = list(TRAINING_ROLLOUT_MISMATCH_VALIDATION_IDS)
+        base_cross_ids = list(TRAINING_ROLLOUT_MISMATCH_CROSS_IDS)
+    elif is_rollout_backend_selection_task(task):
         generic_ids = list(ROLLOUT_BACKEND_SELECTION_GENERIC_IDS)
         validation_ids = list(ROLLOUT_BACKEND_SELECTION_VALIDATION_IDS)
         base_cross_ids = list(ROLLOUT_BACKEND_SELECTION_CROSS_IDS)

@@ -155,7 +155,12 @@ def task_family(contract: dict) -> str:
         str(contract.get("task_name", "")),
         str(contract.get("objective", "")),
         " ".join(str(item) for item in contract.get("components", []) or []),
-    ]).lower()
+    ]).lower().replace("_", " ").replace("-", " ")
+    mentions_training_rollout = ("training" in text or "trainer" in text) and ("rollout" in text or "inference" in text)
+    mentions_debug = any(term in text for term in ["debug", "mismatch", "drift", "replay", "recompute"])
+    mentions_mismatch_signal = any(term in text for term in ["logprob", "policy version", "weight version", "cache", "kv", "schema", "token", "mask"])
+    if mentions_training_rollout and mentions_debug and mentions_mismatch_signal:
+        return "training-rollout-mismatch-debugging"
     mentions_rollout_backend = "rollout-backend-selection" in text or "rollout backend" in text or ("rollout" in text and "backend" in text)
     mentions_backend_pair = "sglang" in text and "vllm" in text
     selection_terms = ["select", "selection", "choose", "compare", "matrix", "tradeoff", "trade-off"]
@@ -192,7 +197,35 @@ def render_draft(contract: dict, bundle: dict) -> str:
         "## Candidate directions",
         "",
     ]
-    if family == "algorithm-data-contract":
+    if family == "training-rollout-mismatch-debugging":
+        sections.extend([
+            "### Candidate A: version/cache first debug path",
+            "",
+            "Start by proving version identity and cache isolation before comparing logprobs. Required evidence includes `policy_version`, `weight_version`, trainer step, rollout request ID, backend ID, cache policy, and source IDs. Required pages include `recipe-debug-training-rollout-mismatch`, `observability-training-inference-mismatch`, `failure-stale-kv-cache`, and `validation-weight-version-monotonicity`.",
+            "",
+            "### Candidate B: replay/recompute first debug path",
+            "",
+            "Use one replayable sample to compare rollout `old_logprob` with trainer recomputation under the same tokenizer, token IDs, masks, weights, precision policy, sampling settings, and cache state. Required pages include `validation-logprob-consistency`, `validation-train-infer-schema-match`, `failure-inconsistent-logprob`, and `failure-sample-schema-drift`.",
+            "",
+            "## Source-backed evidence to carry forward",
+            "",
+            "| topic | page IDs | source IDs | review note |",
+            "|---|---|---|---|",
+            "| debug procedure | `recipe-debug-training-rollout-mismatch`, `observability-debug-playbook` | `source-slime-weight-sync-code`, `source-sglang-rollout-backend-refs`, `source-vllm-rollout-backend-refs` | Isolate the first broken boundary, not aggregate metric drift. |",
+            "| mismatch definition | `observability-training-inference-mismatch`, `concept-training-inference-mismatch` | framework/source refs in context sources | Compare tokenization, masks, cache, precision, route, and versions. |",
+            "| logprob/schema validation | `validation-logprob-consistency`, `validation-train-infer-schema-match` | source IDs from context bundle | Promotion blocked without replay/recompute or explicit gap. |",
+            "| failure modes | `failure-inconsistent-logprob`, `failure-stale-kv-cache`, `failure-sample-schema-drift`, `failure-stale-policy-training` | source IDs from context bundle | Each failure needs detection, mitigation, and stop condition. |",
+            "",
+            "## Failure modes to carry forward",
+            "",
+            "- Missing `policy_version` or `weight_version` on samples, logs, trainer batches, or evidence.",
+            "- Stale KV/prefix cache crossing a weight update or policy switch.",
+            "- Inconsistent rollout `old_logprob` versus trainer recomputation.",
+            "- Sample schema drift across rollout output, data buffer, and trainer batch.",
+            "- Stale-policy samples accepted beyond the configured lag bound.",
+            "- Source-reported behavior treated as local GPU/NCCL/multi-node/performance verification.",
+        ])
+    elif family == "algorithm-data-contract":
         sections.extend([
             "### Candidate A: minimal slime-compatible GRPO/RLVR data contract",
             "",
@@ -286,7 +319,74 @@ def render_plan(contract: dict, bundle: dict) -> str:
         "## Chosen architecture",
         "",
     ]
-    if family == "algorithm-data-contract":
+    if family == "training-rollout-mismatch-debugging":
+        sections.extend([
+            "Design a debugging packet for training/rollout mismatch. The packet should isolate the first broken boundary across version identity, cache, logprob replay/recompute, schema/mask/tokenization, reward/data-buffer handoff, and backend/topology. This is a source-traceable debug scaffold; it does not verify GPU/NCCL/multi-node execution, throughput, latency, quality, or production readiness.",
+            "",
+            "## Debugging Packet",
+            "",
+            "### Symptom",
+            "",
+            "State the observed mismatch as a falsifiable symptom: which trainer batch, rollout sample, metric, or replay check diverged, and which task/run produced it.",
+            "",
+            "### Evidence To Collect",
+            "",
+            "| evidence | required fields | page IDs |",
+            "|---|---|---|",
+            "| run identity | command, config, framework commit, backend version, source IDs | `observability-debug-playbook` |",
+            "| version identity | `policy_version`, `weight_version`, trainer step, rollout request ID, backend ID | `capability-policy-versioning`, `validation-weight-version-monotonicity` |",
+            "| replayable sample | prompt text, prompt token IDs, response token IDs, stop reason, action/loss mask | `interface-algorithm-data-contract`, `validation-train-infer-schema-match` |",
+            "| logprob evidence | rollout `old_logprob`, trainer recomputed logprob or explicit recompute gap, tolerance | `capability-rollout-logprob-capture`, `validation-logprob-consistency` |",
+            "| cache evidence | `flush_cache`, cache namespace, KV lease/TTL, route metadata | `failure-stale-kv-cache` |",
+            "",
+            "### Hypothesis Matrix",
+            "",
+            "| hypothesis | evidence that confirms | evidence that rejects | stop condition |",
+            "|---|---|---|---|",
+            "| version mismatch | sample and trainer batch carry different or missing `policy_version` / `weight_version` | identical versions with matching source artifacts | stop if version identity is missing |",
+            "| stale cache | cached path differs from uncached replay or cache namespace crosses version | cache flush/namespace plus replay match | stop if cache policy cannot be proven |",
+            "| logprob mismatch | rollout `old_logprob` and trainer recompute exceed tolerance | recompute matches under same tokenizer/weights/masks | stop if replay/recompute is unavailable and not scoped out |",
+            "| schema drift | rollout/data-buffer/trainer fields disagree | structural schema check passes for required fields | stop if required fields are inferred without provenance |",
+            "| stale-policy training | sample lag exceeds accepted bound | sample accepted within configured lag | stop if lag bound is undefined |",
+            "",
+            "### Replay/Recompute Checklist",
+            "",
+            "- Use one `sample_id` with prompt/response token IDs, masks, stop reason, backend ID, `policy_version`, and optional `weight_version`.",
+            "- Recompute trainer logprobs with the same tokenizer, weights, precision policy, sampling settings, chat template, padding side, and truncation rules.",
+            "- Compare cached and uncached paths when KV/prefix cache is enabled.",
+            "- Record command, expected result, artifact path, and whether the result is local verification or source-reported design intent.",
+            "",
+            "### Version Cache Logprob Schema Matrix",
+            "",
+            "| boundary | required invariant | validation/risk page |",
+            "|---|---|---|",
+            "| version | sample, backend state, trainer batch, and logs carry compatible `policy_version` / `weight_version` | `validation-weight-version-monotonicity`, `validation-stale-policy-bound` |",
+            "| cache | cache is flushed, namespaced, or proven not to cross version identity | `failure-stale-kv-cache` |",
+            "| logprob | rollout `old_logprob` is attached or trainer recomputation is explicit and comparable | `validation-logprob-consistency` |",
+            "| schema | rollout output, data-buffer row, and trainer batch carry the same required fields | `validation-train-infer-schema-match`, `failure-sample-schema-drift` |",
+            "",
+            "### Failure Isolation Order",
+            "",
+            "1. Version identity.",
+            "2. Cache boundary.",
+            "3. Logprob replay/recompute.",
+            "4. Schema, mask, and tokenization.",
+            "5. Reward/verifier and data-buffer handoff.",
+            "6. Backend and topology.",
+            "",
+            "### Stop Conditions",
+            "",
+            "- Missing version identity blocks promotion.",
+            "- Missing cache policy blocks promotion when cache can affect generation or logprob.",
+            "- Missing replay/recompute evidence blocks compatibility claims.",
+            "- Missing source IDs blocks source-traceable review.",
+            "",
+            "### Non-Claims",
+            "",
+            "- No local GPU, NCCL, multi-node, throughput, latency, quality, or production readiness claim is made by this scaffold.",
+            "- Source-reported backend/framework behavior remains source-reported until reproduced with local commands, logs, and artifacts.",
+        ])
+    elif family == "algorithm-data-contract":
         sections.extend([
             "Design a slime-compatible GRPO/RLVR data contract across rollout, reward/verifier, data buffer, and trainer boundaries. The first implementation batch should be schema-first: inspect current slime sample fields, map required algorithm fields, add compatibility adapters, and reject or quarantine samples that fail validation.",
             "",
@@ -359,7 +459,9 @@ def render_plan(contract: dict, bundle: dict) -> str:
         "## Dataflow",
         "",
     ])
-    if family == "algorithm-data-contract":
+    if family == "training-rollout-mismatch-debugging":
+        sections.append("symptom -> one replayable sample -> version identity -> cache boundary -> rollout old_logprob -> trainer recompute -> schema/mask/tokenization check -> reward/data-buffer handoff -> backend/topology inspection -> validation evidence -> review gate")
+    elif family == "algorithm-data-contract":
         sections.append("prompt source -> rollout request -> inference backend -> token/logprob output -> reward/verifier -> trajectory/sample schema -> data buffer -> grouped trainer batch -> loss computation -> metrics/traces")
     elif family == "rollout-backend-selection":
         sections.append("target framework requirements -> context bundle -> SGLang/vLLM evidence matrix -> topology choice -> primary backend -> fallback backend -> weight update path -> cache/logprob/version contract -> validation evidence -> review gate")
@@ -370,7 +472,21 @@ def render_plan(contract: dict, bundle: dict) -> str:
         context_coverage_section(bundle).rstrip(),
         "",
     ])
-    if family == "algorithm-data-contract":
+    if family == "training-rollout-mismatch-debugging":
+        sections.extend([
+            "## Debug Contract Checks",
+            "",
+            "- symptom: names the exact trainer batch, rollout sample, metric, or replay command that diverged.",
+            "- evidence-to-collect: command/config, source IDs, token IDs, masks, logprobs, version IDs, cache policy, route metadata, and artifact paths.",
+            "- `policy_version`: attached to request, sample, reward rows, data-buffer records, trainer batch, logs, and evidence.",
+            "- `weight_version`: attached when weight sync or backend refit affects rollout samples.",
+            "- cache policy: requires `flush_cache`, cache namespace, lease/TTL, or an explicit stale-cache gap.",
+            "- logprob policy: requires rollout `old_logprob`, trainer recomputation, tolerance, or explicit recompute gap.",
+            "- schema policy: requires prompt/response token IDs, masks, stop reason, reward rows, `group_id` when grouped, and backend provenance.",
+            "- failure modes: stale KV cache, inconsistent logprob, sample schema drift, stale-policy training, missing provenance, and source-reported treated as verified.",
+            "- required Wiki/source IDs: `recipe-debug-training-rollout-mismatch`, `observability-training-inference-mismatch`, `observability-debug-playbook`, `validation-logprob-consistency`, `validation-train-infer-schema-match`, `failure-inconsistent-logprob`, `failure-stale-kv-cache`, `failure-sample-schema-drift`, `failure-stale-policy-training`.",
+        ])
+    elif family == "algorithm-data-contract":
         sections.extend([
             "## GRPO/RLVR Contract Checks",
             "",
@@ -459,6 +575,39 @@ def render_plan(contract: dict, bundle: dict) -> str:
 
 def render_architecture(contract: dict, bundle: dict) -> str:
     family = task_family(contract)
+    if family == "training-rollout-mismatch-debugging":
+        return """# Architecture
+
+## Target
+
+Design a source-traceable debugging workflow for training/rollout mismatch. The architecture is a debug packet scaffold, not a runtime validation or performance claim.
+
+## Flow
+
+symptom -> replayable sample -> version identity -> cache boundary -> logprob replay/recompute -> schema/mask/tokenization check -> reward/data-buffer handoff -> backend/topology inspection -> validation evidence -> review gate.
+
+## Required boundaries
+
+- Trainer owns recomputed logprobs, loss masks, accepted policy lag, and batch provenance.
+- Rollout backend owns generated token IDs, rollout `old_logprob` when available, cache policy, route metadata, and backend provenance.
+- Data buffer owns sample schema validation, group completeness, and trainer-batch materialization.
+- Evidence layer owns command/config, source IDs, artifacts, known gaps, and non-claims.
+
+## Evidence map
+
+| area | page IDs |
+|---|---|
+| debug procedure | `recipe-debug-training-rollout-mismatch`, `observability-debug-playbook` |
+| mismatch definition | `observability-training-inference-mismatch`, `concept-training-inference-mismatch` |
+| logprob/schema validation | `validation-logprob-consistency`, `validation-train-infer-schema-match` |
+| failure modes | `failure-inconsistent-logprob`, `failure-stale-kv-cache`, `failure-sample-schema-drift`, `failure-stale-policy-training` |
+
+## Open gaps
+
+- Source-reported framework behavior has not been locally reproduced with GPU/NCCL/multi-node execution.
+- Throughput, latency, quality, and production readiness are not verified by this scaffold.
+- Target repository symbols should be inspected before implementation changes.
+"""
     if family == "rollout-backend-selection":
         return """# Architecture
 
@@ -520,6 +669,32 @@ slime trainer config -> rollout request -> rollout backend token/logprob output 
 
 def render_interfaces(contract: dict) -> str:
     family = task_family(contract)
+    if family == "training-rollout-mismatch-debugging":
+        return """# Interfaces
+
+## MismatchDebugPacket fields
+
+| field | owner | required | notes |
+|---|---|---:|---|
+| `symptom` | task owner | yes | Exact observed mismatch and run context. |
+| `sample_id` | rollout/data buffer | yes | Stable evidence key for replay and trainer-batch lookup. |
+| `policy_version` | trainer/orchestrator | yes | Required on request, sample, batch, logs, and evidence. |
+| `weight_version` | trainer/backend adapter | task-dependent | Required when weight sync or backend refit affects rollout. |
+| `token_ids` / `masks` | rollout/trainer adapter | yes | Prompt/response token IDs, action/loss mask, attention mask, stop reason. |
+| `old_logprob` | rollout backend | task-dependent | Required when algorithm consumes behavior logprobs. |
+| `trainer_recomputed_logprob` | trainer | task-dependent | Required or explicitly scoped out with reason. |
+| `cache_policy` | rollout backend adapter | yes | `flush_cache`, namespace, lease/TTL, or explicit stale-cache gap. |
+| `source_ids` | evidence layer | yes | Cite Wiki page IDs and source IDs for every inferred claim. |
+| `artifact_refs` | evidence layer | yes | Commands, logs, and replay outputs, or explicit missing-artifact gaps. |
+
+## Adapter contracts
+
+- `recipe-debug-training-rollout-mismatch`
+- `interface-algorithm-data-contract`
+- `interface-rollout-backend-adapter`
+- `validation-logprob-consistency`
+- `validation-train-infer-schema-match`
+"""
     if family == "rollout-backend-selection":
         return """# Interfaces
 
@@ -573,6 +748,18 @@ def render_interfaces(contract: dict) -> str:
 
 def render_risk_register(contract: dict) -> str:
     family = task_family(contract)
+    if family == "training-rollout-mismatch-debugging":
+        return """# Risk Register
+
+| risk | severity | mitigation | status |
+|---|---|---|---|
+| stale KV/prefix cache | P1 | Require `flush_cache`, cache namespace, lease/TTL, or explicit stale-cache gap before logprob claims. | open |
+| inconsistent logprob | P1 | Run `validation-logprob-consistency` replay/recompute checks or scope recompute out explicitly. | open |
+| sample schema drift | P1 | Validate rollout/data-buffer/trainer fields against `interface-algorithm-data-contract`. | open |
+| stale policy training | P1 | Bound accepted policy lag and reject samples missing `policy_version`. | open |
+| missing provenance | P1 | Cite Wiki page IDs, source IDs, commands, artifact refs, and known gaps. | open |
+| source-reported treated as verified | P1 | Keep GPU/NCCL/multi-node/performance/production claims out unless local logs/artifacts exist. | open |
+"""
     if family == "rollout-backend-selection":
         return """# Risk Register
 
@@ -605,10 +792,11 @@ def render_bundle(contract_path: Path, output: Path, preserve_ledgers: bool = Fa
     contract = read_task_contract(contract_path)
     validate_contract_schema(contract, contract_path)
     ensure_workspace_dirs(output)
+    family = task_family(contract)
     bundle = compose_bundle(
         task=contract.get("objective", ""),
         target_framework=first_target_framework(contract),
-        mode="design",
+        mode="debug" if family == "training-rollout-mismatch-debugging" else "design",
         max_pages=16,
     )
     write_context_sidecars(bundle, output / "context")

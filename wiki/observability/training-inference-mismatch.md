@@ -55,10 +55,14 @@ claim_ids:
 - claim-sglang-deterministic-test-hooks
 - claim-sglang-logprob-request-fields
 related_pages:
+- recipe-debug-training-rollout-mismatch
+- observability-debug-playbook
 - validation-logprob-consistency
 - validation-train-infer-schema-match
 - failure-inconsistent-logprob
 - failure-stale-kv-cache
+- failure-sample-schema-drift
+- failure-stale-policy-training
 - capability-rollout-backend-selection
 ---
 
@@ -74,6 +78,14 @@ Mismatch debugging compares rollout logprobs, trainer logprobs, tokenization, ro
 - Rollout backend flags affecting cache, batching, and determinism.
 - Failure logs and rollback action.
 
+## Failure Isolation Order
+
+1. Confirm `policy_version`, `weight_version`, trainer step, rollout request ID, backend ID, and route metadata are present on the same sample.
+2. Check cache isolation: `flush_cache`, cache namespace, lease, or TTL must explain why stale KV/prefix cache cannot cross a policy update.
+3. Compare rollout `old_logprob` with trainer recomputation using the same tokenizer, token IDs, masks, weights, precision policy, and sampling settings.
+4. Compare rollout sample schema with trainer batch input: prompt/response token IDs, action/loss mask, stop reason, reward rows, group ID, and data-buffer record ID.
+5. Inspect backend/topology only after evidence proves the mismatch is not a missing version, stale cache, logprob, or schema issue.
+
 ## Backend Selection Checks
 
 - For SGLang, record deterministic inference flags or known gaps, `return_logprob` request settings, cache flush behavior, and `weight_version`.
@@ -81,4 +93,11 @@ Mismatch debugging compares rollout logprobs, trainer logprobs, tokenization, ro
 - For PD or multi-turn rollout, record KV lease/TTL, conversation ID, router/proxy metadata, and whether stale KV can cross a weight update.
 - Reject a design that compares trainer and rollout logprobs without naming tokenizer, token IDs, action mask, sampling seed/settings, policy version, and backend identity.
 
-All capability statements on this page are source-reported unless explicitly marked otherwise. Local throughput or quality claims require separate evidence.
+## Stop Conditions
+
+- Missing version identity on samples, logs, or trainer batches blocks promotion.
+- Missing cache policy blocks promotion when prefix/KV cache may be reused.
+- Missing replay/recompute evidence blocks any claim that rollout and trainer logprobs are compatible.
+- Missing source IDs or local artifacts blocks production, performance, and quality claims.
+
+All capability statements on this page are source-reported unless explicitly marked otherwise. Local throughput, quality, GPU, NCCL, multi-node, or production claims require separate evidence.
