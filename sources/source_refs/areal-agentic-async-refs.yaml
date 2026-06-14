@@ -1,0 +1,98 @@
+id: source-areal-agentic-async-refs
+name: AReaL async agentic RL, rollout workflow, proxy, and staleness references
+source_category: source-code-ref
+repo: inclusionAI/AReaL
+url: https://github.com/inclusionAI/AReaL
+local_path: AReaL
+captured_at: "2026-06-14"
+upstream_ref: main
+upstream_commit: 67bc932cc2e214ffa6cbd26eb640e16e5dc977b5
+license: Apache-2.0
+status: included
+trust_level: primary
+refresh_policy: monthly
+provenance: local-clone-ingestion-only
+claim_ids:
+  - claim-areal-async-agentic-readme
+  - claim-areal-openai-compatible-base-url
+  - claim-areal-ray-scheduler-entry
+  - claim-areal-agentic-example-table
+  - claim-areal-rollout-workflow-contract
+  - claim-areal-rollout-versions-logprobs
+  - claim-areal-grouped-rollout-partial
+  - claim-areal-workflow-resolution-agent-run
+  - claim-areal-multiturn-reward-export
+  - claim-areal-agent-service-session-tool-events
+  - claim-areal-staleness-recovery
+  - claim-areal-rollout-pause-continue
+  - claim-areal-proxy-ray-limit
+  - claim-areal-version-staleness-metrics
+source_refs:
+  - path: README.md
+    line_range: "20-36"
+    claim_id: claim-areal-async-agentic-readme
+    sha256: 79888e6ff390ff6761d9de48e0a3dc05a7a88a242611021cc43a0b88a6d2a977
+  - path: README.md
+    line_range: "49-64"
+    claim_id: claim-areal-openai-compatible-base-url
+    sha256: c7b71c37dab04cc337d8e211cf63d1324ad5f2306938a21b7125f9282d1c4c6d
+  - path: README.md
+    line_range: "143-150"
+    claim_id: claim-areal-ray-scheduler-entry
+    sha256: 0efcd4da3d35deae6020d9a0b6b2a604b67da2ce927a0236312468e0ff098c2b
+  - path: README.md
+    line_range: "163-197"
+    claim_id: claim-areal-agentic-example-table
+    sha256: 242fef0315112a10f6ef7b8c68fc6af34f232cb954a28e9874fcd1c140147b88
+  - path: docs/en/reference/rollout_workflow.md
+    line_range: "12-24"
+    claim_id: claim-areal-rollout-workflow-contract
+    sha256: c556c05d8936dbbac75a7d456944b11ff7e6c9e289985ab9b56a53c1e7bec261
+  - path: docs/en/reference/rollout_workflow.md
+    line_range: "31-68"
+    claim_id: claim-areal-rollout-versions-logprobs
+    sha256: b5fd0be585ac5410968b32bf904b267b5799e236bade9eea4f938ce31deac0d0
+  - path: docs/en/reference/rollout_workflow.md
+    line_range: "181-189"
+    claim_id: claim-areal-grouped-rollout-partial
+    sha256: 6c32481243ab2fa200fd18e98f20d04d17aa86e8b0ff25b1869ca82f167901df
+  - path: docs/en/reference/rollout_workflow.md
+    line_range: "270-281"
+    claim_id: claim-areal-workflow-resolution-agent-run
+    sha256: 4478e0f9d6a805dad6dd20157f6c606b80947cfa3148f32b49f2332da2d52440
+  - path: examples/multi_turn_math/gsm8k_rl_mt.py
+    line_range: "38-61"
+    claim_id: claim-areal-multiturn-reward-export
+    sha256: 00ef26b6a36f75a9696fe51288acc75b3a7501511989d84a1bf015eaba50233d
+  - path: examples/multi_turn_math/gsm8k_rl_mt.py
+    line_range: "94-110"
+    claim_id: claim-areal-multiturn-reward-export
+    sha256: 12b2a951dbf2094000c7075a327cd21470b97cd0b3bbddf2ad4b0097f1224c12
+  - path: examples/agent_service/agent.py
+    line_range: "47-63"
+    claim_id: claim-areal-agent-service-session-tool-events
+    sha256: c573dd97ad7f7a629dc5e9ad8c11910d3e93d3140fdde8ee9352adc8093ce8d3
+  - path: examples/agent_service/agent.py
+    line_range: "101-139"
+    claim_id: claim-areal-agent-service-session-tool-events
+    sha256: 18a8e4f5ab69f22fe36aa496f33e083d92051ca57a967af77fef4466c37cd670
+  - path: areal/trainer/rl_trainer.py
+    line_range: "409-419"
+    claim_id: claim-areal-staleness-recovery
+    sha256: be3aa99c3c72fc79999d02cadc3478f33d9c91b40306d66d2fa9a9b487384ca8
+  - path: areal/trainer/rl_trainer.py
+    line_range: "460-519"
+    claim_id: claim-areal-rollout-pause-continue
+    sha256: 6fb82dcd79f552018b1160de5a473e04535bee396ed764b3b92ec47b9b654105
+  - path: areal/trainer/rl_trainer.py
+    line_range: "1379-1396"
+    claim_id: claim-areal-proxy-ray-limit
+    sha256: 4a6e015cd1db624d3c2349c18af6455193ec6d7328cbca8bed9e5d9ccb3af9dc
+  - path: areal/trainer/ppo/actor.py
+    line_range: "587-594"
+    claim_id: claim-areal-version-staleness-metrics
+    sha256: ac29046e2292730d1e10450495e75eb321ab2ecfb03d4431645d335285a3a784
+  - path: areal/trainer/ppo/actor.py
+    line_range: "1065-1106"
+    claim_id: claim-areal-version-staleness-metrics
+    sha256: e1fa6fa1e6f9c80d80f2cce369919d6b44730a5113e665f645e0f5e118855bcf

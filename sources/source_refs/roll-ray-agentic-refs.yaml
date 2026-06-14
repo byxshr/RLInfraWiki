@@ -1,0 +1,81 @@
+id: source-roll-ray-agentic-refs
+name: ROLL Ray multi-role, async agentic config, and trajectory references
+source_category: source-code-ref
+repo: alibaba/ROLL
+url: https://github.com/alibaba/ROLL
+local_path: ROLL
+captured_at: "2026-06-14"
+upstream_ref: main
+upstream_commit: ef2f5a4db0aa5c3566ea31b4aec9bb47c26d1c33
+license: Apache-2.0
+status: included
+trust_level: primary
+refresh_policy: monthly
+provenance: local-clone-ingestion-only
+claim_ids:
+  - claim-roll-ray-multirole-readme
+  - claim-roll-agentic-async-feature
+  - claim-roll-resource-observability-readme
+  - claim-roll-worker-role-config
+  - claim-roll-device-overlap-detection
+  - claim-roll-agentic-async-config
+  - claim-roll-agentic-role-config
+  - claim-roll-base-resource-manager
+  - claim-roll-placement-group-download
+  - claim-roll-agentic-cluster-roles
+  - claim-roll-reward-scheduler
+  - claim-roll-rollout-scheduler-lifecycle
+  - claim-roll-agentic-env-trajectory-ids
+source_refs:
+  - path: README.md
+    line_range: "34-36"
+    claim_id: claim-roll-ray-multirole-readme
+    sha256: c7a46f546d840f935ab76fa5db4c06550b0e1f759c96b121e883d773fd8ed8a0
+  - path: README.md
+    line_range: "55-63"
+    claim_id: claim-roll-agentic-async-feature
+    sha256: 9760aa2d26fb64c7a34605d378b73d6455c210d6e7cefcfdb3b35e5bf912d43d
+  - path: README.md
+    line_range: "115-148"
+    claim_id: claim-roll-resource-observability-readme
+    sha256: 11d8c43bc8f0406a62b427000e5e501b47bd2bfb84a88e6a576e456f444ecef9
+  - path: roll/configs/worker_config.py
+    line_range: "79-138"
+    claim_id: claim-roll-worker-role-config
+    sha256: f135a05065340b7afe2b90b7729d84fe9dad90d21760c6b2ee46abff8c119bb4
+  - path: roll/configs/worker_config.py
+    line_range: "248-299"
+    claim_id: claim-roll-device-overlap-detection
+    sha256: 18577e3209f227645b245200b262108941237ce04c0422366cca5d001d993b94
+  - path: examples/qwen2.5-0.5B-agentic/agent_val_frozen_lake_async.yaml
+    line_range: "32-50"
+    claim_id: claim-roll-agentic-async-config
+    sha256: 692da5d440f026c1931c15c2e057e26a6fb1876437652ebf0e29f5839e27f763
+  - path: examples/qwen2.5-0.5B-agentic/agent_val_frozen_lake_async.yaml
+    line_range: "67-131"
+    claim_id: claim-roll-agentic-role-config
+    sha256: 11158c1dc77b6fcdcc98266781194626d1d7dbe2b25a36fb8e9e9f54640d6cf9
+  - path: roll/pipeline/base_pipeline.py
+    line_range: "26-45"
+    claim_id: claim-roll-base-resource-manager
+    sha256: 4ea449035c48953c0639dc0879ee36bddce067ddd999de7d47722a04c0002414
+  - path: roll/pipeline/base_pipeline.py
+    line_range: "157-181"
+    claim_id: claim-roll-placement-group-download
+    sha256: a6c916f4ad1ae706ab6b2e33fd49238b0108e1e8d8614a884437c585754df241
+  - path: roll/pipeline/agentic/agentic_pipeline.py
+    line_range: "69-92"
+    claim_id: claim-roll-agentic-cluster-roles
+    sha256: 67e5c7fda4575685df9169431124567b67b57244100d3136b5c84bac29871d89
+  - path: roll/pipeline/agentic/agentic_pipeline.py
+    line_range: "104-139"
+    claim_id: claim-roll-reward-scheduler
+    sha256: c12cb18efd0c5aeea51cb39df83f9cd6f108b7f44a6ba6f833545e323bc3f80f
+  - path: roll/pipeline/agentic/agentic_pipeline.py
+    line_range: "141-185"
+    claim_id: claim-roll-rollout-scheduler-lifecycle
+    sha256: 07595ff4d8f3c52cabbb06d828cad4354d33bc4c25309e701bfa288720300d54
+  - path: roll/pipeline/agentic/env_manager/agent_native_env_manager.py
+    line_range: "84-131"
+    claim_id: claim-roll-agentic-env-trajectory-ids
+    sha256: e8718c935fdc6b9643878ca58af8fe7dd2044e5785aeb856dfa76556d44d1377

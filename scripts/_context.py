@@ -150,6 +150,52 @@ TRAINING_ROLLOUT_MISMATCH_VALIDATION_IDS = [
     "failure-stale-policy-training",
 ]
 
+ASYNC_AGENTIC_RAY_GENERIC_IDS = [
+    "recipe-design-agentic-rl-pipeline",
+    "algorithm-agentic-rl",
+    "agentic-tool-calling",
+    "agentic-multi-turn-env",
+    "agentic-openai-compatible-agent-app",
+    "pattern-async-rollout",
+    "interface-environment-adapter",
+    "interface-orchestrator-adapter",
+    "interface-reward-service-adapter",
+    "interface-data-buffer-adapter",
+    "capability-rollout-agentic-multiturn",
+    "capability-rollout-server-async",
+    "capability-policy-versioning",
+    "capability-reward-verifier",
+]
+
+ASYNC_AGENTIC_RAY_CROSS_IDS = [
+    "framework-slime",
+    "framework-roll",
+    "framework-verl",
+    "framework-areal",
+    "system-roll",
+    "system-areal",
+    "pattern-ray-multirole",
+    "comparisons-orchestration-options",
+    "comparison-cross-framework-lessons",
+    "comparisons-rollout-backends",
+    "pattern-colocated-train-rollout",
+    "pattern-disaggregated-train-rollout",
+]
+
+ASYNC_AGENTIC_RAY_VALIDATION_IDS = [
+    "failure-reward-timeout",
+    "failure-tool-hang",
+    "failure-stale-policy-training",
+    "failure-stale-kv-cache",
+    "failure-sample-schema-drift",
+    "failure-inconsistent-logprob",
+    "validation-stale-policy-bound",
+    "validation-reward-timeout-retry",
+    "validation-train-infer-schema-match",
+    "validation-logprob-consistency",
+    "validation-grouped-rollout-invariants",
+]
+
 
 def normalized_task_text(task: str) -> str:
     return task.lower().replace("_", " ").replace("-", " ")
@@ -195,6 +241,15 @@ def is_training_rollout_mismatch_debug_task(task: str, mode: str = "design") -> 
     return (mode == "debug" and mentions_boundary and mentions_signal) or (
         mentions_boundary and mentions_debug and mentions_signal
     )
+
+
+def is_async_agentic_ray_task(task: str, mode: str = "design") -> bool:
+    text = normalized_task_text(task)
+    mentions_agentic = any(term in text for term in ["agentic", "agent", "tool calling", "multi turn", "multiturn"])
+    mentions_async = any(term in text for term in ["async", "asynchronous", "stale policy", "long tail"])
+    mentions_orchestration = any(term in text for term in ["ray", "orchestration", "orchestrator", "scheduler", "multi role", "multirole"])
+    mentions_rollout_context = any(term in text for term in ["rollout", "generation", "pipeline", "reward", "environment", "tool"])
+    return mode in {"design", "adapter", "explain"} and mentions_agentic and mentions_async and mentions_orchestration and mentions_rollout_context
 
 
 def now_stamp() -> str:
@@ -307,6 +362,10 @@ def compose_bundle(
         generic_ids = list(ALGORITHM_DATA_CONTRACT_GENERIC_IDS)
         validation_ids = list(ALGORITHM_DATA_CONTRACT_VALIDATION_IDS)
         base_cross_ids = list(DEFAULT_CROSS_IDS)
+    elif is_async_agentic_ray_task(task, mode):
+        generic_ids = list(ASYNC_AGENTIC_RAY_GENERIC_IDS)
+        validation_ids = list(ASYNC_AGENTIC_RAY_VALIDATION_IDS)
+        base_cross_ids = list(ASYNC_AGENTIC_RAY_CROSS_IDS)
     else:
         generic_ids = list(DEFAULT_GENERIC_IDS)
         validation_ids = list(DEFAULT_VALIDATION_IDS)
@@ -432,7 +491,13 @@ def render_markdown(bundle: dict[str, Any]) -> str:
     lines.append("## Recommended Next Queries")
     lines.append("")
     backends = set(bundle.get("problem_facets", {}).get("backends", []))
-    if {"sglang", "vllm"} <= backends:
+    deployment_modes = set(bundle.get("problem_facets", {}).get("deployment_modes", []))
+    components = set(bundle.get("problem_facets", {}).get("components", []))
+    if "async" in deployment_modes and ("ray" in backends or "scheduler" in components):
+        lines.append("- `python scripts/get_page.py pattern-async-rollout --follow-sources`")
+        lines.append("- `python scripts/get_page.py pattern-ray-multirole --follow-sources`")
+        lines.append("- `python scripts/get_page.py comparisons-orchestration-options --follow-sources`")
+    elif {"sglang", "vllm"} <= backends:
         lines.append("- `python scripts/get_page.py capability-rollout-backend-selection --follow-sources`")
         lines.append("- `python scripts/get_page.py comparisons-rollout-backends --follow-sources`")
         lines.append("- `python scripts/get_page.py validation-logprob-consistency --follow-sources`")

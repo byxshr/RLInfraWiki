@@ -100,3 +100,54 @@ def test_training_rollout_mismatch_debug_context_uses_debug_packs(tmp_path):
     assert "framework-verl" in cross_ids
     all_pages = {page["page_id"] for pack in packs.values() for page in pack}
     assert any(not page.startswith("framework-slime") for page in all_pages)
+
+
+def test_async_agentic_ray_context_uses_agentic_orchestration_packs(tmp_path):
+    output = tmp_path / "async-agentic-context.md"
+    task = "design async agentic RL pipeline with Ray orchestration multi-turn tool calling reward timeout stale policy bound"
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/compose_context.py"),
+            "--target-framework",
+            "areal",
+            "--task",
+            task,
+            "--mode",
+            "design",
+            "--output",
+            str(output),
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+
+    validate = subprocess.run(
+        [sys.executable, str(ROOT / "scripts/validate_context_bundle.py"), str(output)],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    assert validate.returncode == 0, validate.stdout + validate.stderr
+
+    bundle = load_embedded_bundle(output.read_text())
+    packs = bundle["packs"]
+    assert "framework-areal" in {page["page_id"] for page in packs["target_framework_pack"]}
+    generic_ids = {page["page_id"] for page in packs["generic_infra_pack"]}
+    cross_ids = {page["page_id"] for page in packs["cross_framework_pack"]}
+    validation_ids = {page["page_id"] for page in packs["validation_risk_pack"]}
+    assert "agentic-tool-calling" in generic_ids
+    assert "agentic-multi-turn-env" in generic_ids
+    assert "pattern-async-rollout" in generic_ids
+    assert "interface-orchestrator-adapter" in generic_ids
+    assert "capability-rollout-server-async" in generic_ids
+    assert "pattern-ray-multirole" in cross_ids
+    assert "comparisons-orchestration-options" in cross_ids
+    assert "system-roll" in cross_ids
+    assert "validation-stale-policy-bound" in validation_ids
+    assert "failure-tool-hang" in validation_ids
+    assert "failure-reward-timeout" in validation_ids
+    all_pages = {page["page_id"] for pack in packs.values() for page in pack}
+    assert any(not page.startswith("framework-areal") for page in all_pages)

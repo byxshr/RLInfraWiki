@@ -45,3 +45,25 @@ def test_query_finds_training_rollout_mismatch_debug_pages():
     assert result.returncode == 0, result.stderr
     assert "recipe-debug-training-rollout-mismatch" in result.stdout
     assert "observability-training-inference-mismatch" in result.stdout
+
+
+def test_query_finds_async_agentic_ray_orchestration_pages():
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(ROOT / "scripts/query.py"),
+            "async agentic RL Ray orchestration tool calling multi-turn rollout stale policy",
+            "--limit",
+            "10",
+        ],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "agentic-tool-calling" in result.stdout
+    assert "pattern-async-rollout" in result.stdout
+    assert "pattern-ray-multirole" in result.stdout
+    assert "comparisons-orchestration-options" in result.stdout
+    assert "system-roll" in result.stdout
+    assert "system-areal" in result.stdout

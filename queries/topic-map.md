@@ -61,8 +61,8 @@
 - `failure-stale-kv-cache`: [Stale KV cache](../wiki/failure-modes/stale-kv-cache.md) - Prefix/KV cache survives across a weight update without namespacing or flush.
 - `failure-stale-policy-training`: [Stale-policy training](../wiki/failure-modes/stale-policy-training.md) - Trainer consumes samples beyond the accepted policy lag.
 - `failure-tool-hang`: [Tool hang](../wiki/failure-modes/tool-hang.md) - Agent tool call hangs and blocks trajectory completion.
-- `framework-areal`: [AReaL framework profile](../wiki/framework-profiles/areal.md) - AReaL framework profile maps source-reported framework capabilities to generic RLInfraWiki contracts and cross-framework lessons.
-- `framework-roll`: [ROLL framework profile](../wiki/framework-profiles/roll.md) - ROLL framework profile maps source-reported framework capabilities to generic RLInfraWiki contracts and cross-framework lessons.
+- `framework-areal`: [AReaL framework profile](../wiki/framework-profiles/areal.md) - AReaL framework profile maps source-reported async agentic framework capabilities to generic RLInfraWiki contracts and cross-framework lessons.
+- `framework-roll`: [ROLL framework profile](../wiki/framework-profiles/roll.md) - ROLL framework profile maps source-reported Ray multi-role and async agentic capabilities to generic RLInfraWiki contracts and cross-framework lessons.
 - `framework-slime`: [slime framework profile](../wiki/framework-profiles/slime.md) - slime framework profile maps source-reported framework capabilities to generic RLInfraWiki contracts and cross-framework lessons.
 - `framework-verl`: [verl framework profile](../wiki/framework-profiles/verl.md) - verl framework profile maps source-reported framework capabilities to generic RLInfraWiki contracts and cross-framework lessons.
 - `interface-algorithm-data-contract`: [AlgorithmDataContract](../wiki/interfaces/algorithm-data-contract.md) - AlgorithmDataContract is a minimal adapter contract for the algorithm, data-buffer component boundary.
@@ -81,13 +81,13 @@
 - `pattern-disaggregated-train-rollout`: [Disaggregated Train Rollout](../wiki/patterns/disaggregated-train-rollout.md) - Pattern for separate training and rollout resources with explicit weight version and transport boundary.
 - `pattern-megatron-sglang`: [Megatron plus SGLang](../wiki/patterns/megatron-sglang.md) - Pattern for a Megatron trainer and SGLang rollout engines connected by slime weight sync, with explicit conversion, cache, version, fallback, and rollback boundaries.
 - `pattern-pd-disaggregation`: [Prefill Decode Disaggregation](../wiki/patterns/pd-disaggregation.md) - Pattern for separating prefill and decode resources, with router and KV-transfer failure surfaces.
-- `pattern-ray-multirole`: [Ray Multi-Role](../wiki/patterns/ray-multirole.md) - Pattern for explicit Ray roles such as actor_train, actor_infer, reference, reward, and validation.
+- `pattern-ray-multirole`: [Ray Multi-Role](../wiki/patterns/ray-multirole.md) - Ray orchestration pattern for explicit roles such as actor_train, actor_infer, reference, reward, placement, schedulers, and validation.
 - `recipe-debug-training-rollout-mismatch`: [Debug Training Rollout Mismatch](../wiki/recipes/debug-training-rollout-mismatch.md) - Debugging recipe for isolating training/rollout mismatch across version identity, cache, logprob replay, schema, reward/data-buffer, backend, and topology boundaries.
 - `recipe-design-agentic-rl-pipeline`: [Design Agentic RL Pipeline](../wiki/recipes/design-agentic-rl-pipeline.md) - Recipe for designing agentic RL sample lifecycle, tool runtime, reward aggregation, stale policy controls, and observability.
 - `recipe-design-weight-sync`: [Design Weight Sync](../wiki/recipes/design-weight-sync.md) - Review-ready recipe for designing Megatron-to-SGLang weight sync through slime, including primary path selection, full checkpoint fallback, version tags, cache policy, rollback, and validation evidence.
 - `recipe-select-stack`: [Select Stack](../wiki/recipes/select-stack.md) - Recipe for selecting framework, trainer, rollout backend, orchestration, and validation strategy.
 - `system-areal`: [AReaL](../wiki/systems/areal.md) - AReaL focuses on fully asynchronous RL and agentic workflows, including OpenAI-compatible application integration.
-- `system-roll`: [ROLL](../wiki/systems/roll.md) - ROLL is a Ray-based multi-role RL library for RLVR and agentic pipelines with Megatron-Core, SGLang, and vLLM integration.
+- `system-roll`: [ROLL](../wiki/systems/roll.md) - ROLL is a Ray orchestration system for async agentic RL, multi-turn rollout, RLVR, and multi-role pipelines with Megatron-Core, SGLang, and vLLM integration.
 - `system-slime`: [slime](../wiki/systems/slime.md) - slime wires Megatron training to SGLang rollout through Ray-managed rollout managers and explicit update_weights paths, including disk, tensor, distributed, and delta variants with version and cache boundaries.
 - `system-verl`: [verl](../wiki/systems/verl.md) - verl exposes modular RL dataflows with multiple training and rollout backends.
 - `training-fsdp`: [FSDP / FSDP2](../wiki/training/fsdp.md) - FSDP and FSDP2 are sharded training strategies used by RL frameworks as alternatives or complements to Megatron-style parallelism.
