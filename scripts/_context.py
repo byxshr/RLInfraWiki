@@ -244,12 +244,22 @@ def is_training_rollout_mismatch_debug_task(task: str, mode: str = "design") -> 
 
 
 def is_async_agentic_ray_task(task: str, mode: str = "design") -> bool:
+    raw_text = task.lower().replace("_", " ")
     text = normalized_task_text(task)
-    mentions_agentic = any(term in text for term in ["agentic", "agent", "tool calling", "multi turn", "multiturn"])
+    mentions_agentic = any(term in text for term in ["agentic", "tool calling", "multi turn", "multiturn"])
+    mentions_agent_runtime = bool(re.search(r"(?<![\w-])agent(?![\w-])", raw_text)) and any(
+        term in text for term in ["app", "trajectory", "service", "tool"]
+    )
     mentions_async = any(term in text for term in ["async", "asynchronous", "stale policy", "long tail"])
     mentions_orchestration = any(term in text for term in ["ray", "orchestration", "orchestrator", "scheduler", "multi role", "multirole"])
     mentions_rollout_context = any(term in text for term in ["rollout", "generation", "pipeline", "reward", "environment", "tool"])
-    return mode in {"design", "adapter", "explain"} and mentions_agentic and mentions_async and mentions_orchestration and mentions_rollout_context
+    return (
+        mode in {"design", "adapter", "explain"}
+        and (mentions_agentic or mentions_agent_runtime)
+        and mentions_async
+        and mentions_orchestration
+        and mentions_rollout_context
+    )
 
 
 def now_stamp() -> str:
@@ -305,6 +315,14 @@ def add_existing(pages: dict[str, dict[str, Any]], ids: list[str], why: str) -> 
     return out
 
 
+def extend_unique(ids: list[str], additions: list[str]) -> None:
+    seen = set(ids)
+    for pid in additions:
+        if pid not in seen:
+            ids.append(pid)
+            seen.add(pid)
+
+
 def infer_facets(task: str) -> dict[str, list[str]]:
     text = task.lower()
     facets = {"components": [], "algorithms": [], "backends": [], "deployment_modes": []}
@@ -350,19 +368,24 @@ def compose_bundle(
     elif target:
         target_ids.append("adapter-adapt-new-framework")
 
-    if is_training_rollout_mismatch_debug_task(task, mode):
+    is_mismatch_debug = is_training_rollout_mismatch_debug_task(task, mode)
+    is_backend_selection = is_rollout_backend_selection_task(task)
+    is_algorithm_contract = is_algorithm_data_contract_task(task)
+    is_async_agentic_ray = is_async_agentic_ray_task(task, mode)
+
+    if is_mismatch_debug:
         generic_ids = list(TRAINING_ROLLOUT_MISMATCH_GENERIC_IDS)
         validation_ids = list(TRAINING_ROLLOUT_MISMATCH_VALIDATION_IDS)
         base_cross_ids = list(TRAINING_ROLLOUT_MISMATCH_CROSS_IDS)
-    elif is_rollout_backend_selection_task(task):
+    elif is_backend_selection:
         generic_ids = list(ROLLOUT_BACKEND_SELECTION_GENERIC_IDS)
         validation_ids = list(ROLLOUT_BACKEND_SELECTION_VALIDATION_IDS)
         base_cross_ids = list(ROLLOUT_BACKEND_SELECTION_CROSS_IDS)
-    elif is_algorithm_data_contract_task(task):
+    elif is_algorithm_contract:
         generic_ids = list(ALGORITHM_DATA_CONTRACT_GENERIC_IDS)
         validation_ids = list(ALGORITHM_DATA_CONTRACT_VALIDATION_IDS)
         base_cross_ids = list(DEFAULT_CROSS_IDS)
-    elif is_async_agentic_ray_task(task, mode):
+    elif is_async_agentic_ray:
         generic_ids = list(ASYNC_AGENTIC_RAY_GENERIC_IDS)
         validation_ids = list(ASYNC_AGENTIC_RAY_VALIDATION_IDS)
         base_cross_ids = list(ASYNC_AGENTIC_RAY_CROSS_IDS)
@@ -370,6 +393,10 @@ def compose_bundle(
         generic_ids = list(DEFAULT_GENERIC_IDS)
         validation_ids = list(DEFAULT_VALIDATION_IDS)
         base_cross_ids = list(DEFAULT_CROSS_IDS)
+    if is_async_agentic_ray and not is_mismatch_debug:
+        extend_unique(generic_ids, ASYNC_AGENTIC_RAY_GENERIC_IDS)
+        extend_unique(validation_ids, ASYNC_AGENTIC_RAY_VALIDATION_IDS)
+        extend_unique(base_cross_ids, ASYNC_AGENTIC_RAY_CROSS_IDS)
     if "sglang" in task.lower() and "adapter-add-sglang-rollout-backend" in pages:
         generic_ids.append("adapter-add-sglang-rollout-backend")
     if "vllm" in task.lower() and "adapter-add-vllm-rollout-backend" in pages:

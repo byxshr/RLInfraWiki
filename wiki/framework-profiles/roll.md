@@ -40,11 +40,6 @@ capability_map:
     source_ids:
     - source-roll-ray-agentic-refs
     - repo-alibaba-roll-readme
-  async-rollout:
-    status: source-reported
-    source_ids:
-    - source-roll-ray-agentic-refs
-    - repo-alibaba-roll-readme
   pattern-ray-multirole:
     status: source-reported
     source_ids:
@@ -95,7 +90,7 @@ risks: []
 # ROLL framework profile
 
 ## Capability map
-Use this page as an entry point only; a design must still read generic contracts, cross-framework lessons, and validation/risk pages. The `async-rollout` and `pattern-ray-multirole` entries are source-reported from ROLL source ids and must not be treated as runtime verification.
+Use this page as an entry point only; a design must still read generic contracts, cross-framework lessons, and validation/risk pages. The async rollout and `pattern-ray-multirole` entries are source-reported from ROLL source ids and must not be treated as runtime verification.
 
 ## Transferable lessons
 Transfer lessons only after checking backend assumptions, orchestration model, policy lag, and validation coverage.

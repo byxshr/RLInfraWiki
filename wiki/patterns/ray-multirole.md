@@ -24,6 +24,10 @@ tags:
 - ray
 - multirole
 - async
+- agentic
+- tool-calling
+- multi-turn
+- rollout
 - code-evidenced
 confidence: inferred
 reproducibility: source-reading
@@ -45,8 +49,9 @@ version_sensitive:
 - vs-sglang-main-2026-06-12
 created_at: '2026-06-12'
 updated_at: '2026-06-14'
-summary: Ray orchestration pattern for explicit roles such as actor_train, actor_infer,
-  reference, reward, placement, schedulers, and validation.
+summary: Ray orchestration pattern for async agentic RL, multi-turn rollout, tool
+  calling, stale policy control, and explicit actor_train, actor_infer, reference,
+  reward, placement, schedulers, and validation roles.
 risks:
 - stale-policy
 - version-mismatch

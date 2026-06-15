@@ -19,4 +19,4 @@
 | `pattern-disaggregated-train-rollout` | `slime`, `roll`, `areal` | Pattern for separate training and rollout resources with explicit weight version and transport boundary. |
 | `pattern-megatron-sglang` | `slime` | Pattern for a Megatron trainer and SGLang rollout engines connected by slime weight sync, with explicit conversion, cache, version, fallback, and rollback boundaries. |
 | `pattern-pd-disaggregation` | `vllm`, `sglang` | Pattern for separating prefill and decode resources, with router and KV-transfer failure surfaces. |
-| `pattern-ray-multirole` | `roll`, `verl` | Ray orchestration pattern for explicit roles such as actor_train, actor_infer, reference, reward, placement, schedulers, and validation. |
+| `pattern-ray-multirole` | `roll`, `verl` | Ray orchestration pattern for async agentic RL, multi-turn rollout, tool calling, stale policy control, and explicit actor_train, actor_infer, reference, reward, placement, schedulers, and validation roles. |

@@ -3,14 +3,27 @@ from __future__ import annotations
 
 import argparse
 
-from _rlinfra import iter_wiki_pages
+from _rlinfra import DATA_DIR, iter_wiki_pages, load_yaml
+
+
+def capability_aliases(capability: str) -> set[str]:
+    wanted = {capability.lower()}
+    aliases = load_yaml(DATA_DIR / "aliases.yaml", {}) or {}
+    for canonical, values in aliases.items():
+        expanded = {str(canonical).lower()}
+        expanded.update(str(value).lower() for value in values or [])
+        if capability.lower() in expanded:
+            wanted.update(expanded)
+    return wanted
 
 
 def capability_status(page: dict, capability: str) -> str:
+    wanted = capability_aliases(capability)
     cap_map = page.get("capability_map")
     if isinstance(cap_map, dict):
         for key, value in cap_map.items():
-            if capability in key:
+            key_lower = str(key).lower()
+            if key_lower in wanted or any(alias in key_lower for alias in wanted):
                 if isinstance(value, dict):
                     return str(value.get("status", "source-reported"))
                 return str(value)

@@ -43,11 +43,6 @@ capability_map:
     source_ids:
     - source-areal-agentic-async-refs
     - repo-inclusionai-areal-readme
-  async-rollout:
-    status: source-reported
-    source_ids:
-    - source-areal-agentic-async-refs
-    - repo-inclusionai-areal-readme
   capability-rollout-agentic-multiturn:
     status: source-reported
     source_ids:
@@ -93,7 +88,7 @@ risks: []
 # AReaL framework profile
 
 ## Capability map
-Use this page as an entry point only; a design must still read generic contracts, cross-framework lessons, and validation/risk pages. The `async-rollout` entries are source-reported from AReaL source ids and must not be treated as runtime verification.
+Use this page as an entry point only; a design must still read generic contracts, cross-framework lessons, and validation/risk pages. The async rollout entries are source-reported from AReaL source ids and must not be treated as runtime verification.
 
 ## Transferable lessons
 Transfer lessons only after checking backend assumptions, orchestration model, policy lag, and validation coverage.
