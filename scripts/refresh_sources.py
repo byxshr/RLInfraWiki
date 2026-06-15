@@ -11,8 +11,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Create a non-mutating SourcePack refresh/drift report.")
     parser.add_argument("--workspace", default=".")
     parser.add_argument("--source-root", type=Path, help="Directory containing sibling upstream clones")
-    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--dry-run", action="store_true", help="Compatibility flag; this command is always non-mutating")
     parser.add_argument("--strict-hash", action="store_true", help="Treat legacy sha256 placeholders as errors in the report")
+    parser.add_argument("--fail-on-errors", action="store_true", help="Exit non-zero when the report contains drift errors")
     parser.add_argument("--markdown-output", type=Path, help="Write a markdown report")
     parser.add_argument("--json-output", type=Path, help="Write a JSON report")
     args = parser.parse_args()
@@ -32,6 +33,8 @@ def main() -> int:
         print(f"wrote {args.json_output}")
     if not args.markdown_output and not args.json_output:
         print(markdown)
+    if args.fail_on_errors and report["errors"]:
+        return 1
     return 0
 
 
