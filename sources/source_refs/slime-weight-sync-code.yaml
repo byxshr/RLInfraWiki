@@ -23,28 +23,28 @@ source_refs:
   - path: train.py
     line_range: "15-26"
     claim_id: claim-slime-initial-weight-push
-    sha256: source-reported
+    sha256: 1036b386427ebb99e4995a2a659f447c7a1a98c657736b66cf6c08707095ad49
   - path: train.py
     line_range: "89-89"
     claim_id: claim-slime-sync-weight-update
-    sha256: source-reported
+    sha256: b580d3c8dc48ea9e4ecf6db944411a82a1322ffb51d4b5829df51ccc77ef956a
   - path: train_async.py
     line_range: "24-65"
     claim_id: claim-slime-async-update-interval
-    sha256: source-reported
+    sha256: 26263d0f79e48361818c30615dcb7e125c579def485f4795ef1c5109ddcc5e00
   - path: slime/backends/megatron_utils/update_weight/update_weight_from_disk.py
     line_range: "61-93"
     claim_id: claim-slime-disk-sync
-    sha256: source-reported
+    sha256: 7457dcb36cc17a1bf0d9a2e9009f9763f9f700d412ea9e8323b32aadf4bbb6dc
   - path: slime/backends/megatron_utils/update_weight/update_weight_from_tensor.py
     line_range: "24-200"
     claim_id: claim-slime-tensor-sync
-    sha256: source-reported
+    sha256: f6426e56aea136be6a78cb41416f30beefa7518d66cbf7b26293bbeafc5ea0ed
   - path: slime/backends/megatron_utils/update_weight/update_weight_from_distributed.py
     line_range: "23-335"
     claim_id: claim-slime-distributed-sync
-    sha256: source-reported
+    sha256: 0a8d780039855eab375d1c6acce6b24f78be1085a21af8c8ef1d441cd3b83d5c
   - path: slime/backends/megatron_utils/update_weight/update_weight_from_distributed_delta.py
     line_range: "479-857"
     claim_id: claim-slime-delta-sync
-    sha256: source-reported
+    sha256: 914d576bd482e8ec4080ba5036af0af0a8232d689d8500e9cd76563338e0a178

@@ -16,8 +16,8 @@ source_refs:
   - path: slime_plugins/rollout_buffer/README.md
     line_range: "5-5"
     claim_id: claim-slime-data-buffer-agentic-rollout
-    sha256: source-reported
+    sha256: db5cfec9430697afdb413ed674ee44505613f5a20ed4e519546bddbe117bbd4a
   - path: slime_plugins/rollout_buffer/buffer.py
     line_range: "325-325"
     claim_id: claim-slime-data-buffer-agentic-rollout
-    sha256: source-reported
+    sha256: e5ec05976893d7b3dbe5c961c70dccd5b53d5217a6309ac795394e0d59f5d322

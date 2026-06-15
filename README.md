@@ -52,12 +52,12 @@ Local clones are ingestion backends only. Wiki pages cite stable source IDs, sou
 Source ref validation has two layers:
 
 ```bash
-python scripts/verify_source_refs.py
-python scripts/verify_source_refs.py --check-local --source-root ..
-python scripts/refresh_sources.py --dry-run --source-root .. --markdown-output /tmp/rlinfrawiki-source-refresh-report.md
+python scripts/verify_source_refs.py --strict-hash
+python scripts/verify_source_refs.py --check-local --source-root .. --strict-hash
+python scripts/refresh_sources.py --dry-run --source-root .. --strict-hash --fail-on-errors --markdown-output /tmp/rlinfrawiki-source-refresh-report.md
 ```
 
-The default checker is CI-safe and validates SourcePack metadata without requiring upstream clones. The local checker expects sibling clones under `--source-root`, verifies recorded commits, paths, line ranges, and real hashes, and reports legacy `sha256: source-reported` refs as warnings unless `--strict-hash` is used. `local_path` may be a single or multi-segment relative path under `--source-root`; absolute paths and `..` traversal are rejected. Snippet hashes are computed from strict UTF-8 text by joining selected lines with `\n` plus one trailing newline before SHA-256.
+Project gates require strict SourcePack hashes. The CI-safe checker validates metadata and rejects legacy `sha256: source-reported` placeholders with `--strict-hash`; running the raw CLI without `--strict-hash` is reserved for legacy migration or temporary audit work. The local checker expects sibling clones under `--source-root`, verifies recorded commits, paths, line ranges, and real hashes. `local_path` may be a single or multi-segment relative path under `--source-root`; absolute paths and `..` traversal are rejected. Snippet hashes are computed from strict UTF-8 text by joining selected lines with `\n` plus one trailing newline before SHA-256.
 
 `refresh_sources.py` is reporting-only and never fetches, rewrites manifests, or vendors upstream code. Use `--fail-on-errors` when a script should fail on a `needs-refresh` report.
 

@@ -12,10 +12,10 @@ validate:
 	$(PYTHON) scripts/validate.py
 
 verify-source-refs:
-	$(PYTHON) scripts/verify_source_refs.py
+	$(PYTHON) scripts/verify_source_refs.py --strict-hash
 
 verify-source-drift:
-	$(PYTHON) scripts/verify_source_refs.py --check-local --source-root $(SOURCE_ROOT)
+	$(PYTHON) scripts/verify_source_refs.py --check-local --source-root $(SOURCE_ROOT) --strict-hash
 
 refresh-source-report:
 	$(PYTHON) scripts/refresh_sources.py --dry-run --source-root $(SOURCE_ROOT) --markdown-output $(SOURCE_REFRESH_REPORT)
@@ -47,7 +47,7 @@ test:
 	pytest -q
 
 check:
-	$(PYTHON) scripts/verify_source_refs.py
+	$(PYTHON) scripts/verify_source_refs.py --strict-hash
 	$(PYTHON) scripts/validate.py
 	$(PYTHON) scripts/generate_indices.py --check
 	$(PYTHON) scripts/repo_status.py
