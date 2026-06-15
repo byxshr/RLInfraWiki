@@ -49,6 +49,16 @@ python scripts/plan_adapter.py --profile /tmp/smoke-profile.yaml --context /tmp/
 
 Local clones are ingestion backends only. Wiki pages cite stable source IDs, source refs, upstream commits, paths, line ranges, claim IDs, hashes, confidence, and known gaps. Do not vendor full upstream RL framework repositories, and do not mark source-reported claims as locally verified without command, hardware/context, log/artifact, and result evidence.
 
+Source ref validation has two layers:
+
+```bash
+python scripts/verify_source_refs.py
+python scripts/verify_source_refs.py --check-local --source-root ..
+python scripts/refresh_sources.py --dry-run --source-root .. --markdown-output /tmp/rlinfrawiki-source-refresh-report.md
+```
+
+The default checker is CI-safe and validates SourcePack metadata without requiring upstream clones. The local checker expects sibling clones under `--source-root`, verifies recorded commits, paths, line ranges, and real hashes, and reports legacy `sha256: source-reported` refs as warnings unless `--strict-hash` is used.
+
 ## Content Status
 
 - Rollout backend selection P1 is code-evidenced/source-reading as of 2026-06-13 through `source-vllm-rollout-backend-refs`, `source-sglang-rollout-backend-refs`, and `source-sglang-rl-weight-update-refs`.
